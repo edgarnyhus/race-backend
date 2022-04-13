@@ -1,0 +1,7 @@
+{
+  "ConnectionStrings": {
+    "RaceBackendDbConnection": "server=localhost; port=3306; database=getacademy3487; uid=root; pwd=penny9X",
+    "RaceBackendDbConnection_": "server=159.223.208.93; port=44567; database=getacademy3487; uid=getacademy3487; pwd=NoKj2mhBF0hOA5z8"
+  },
+  "useMySql": "true"
+}
