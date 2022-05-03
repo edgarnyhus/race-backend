@@ -62,12 +62,13 @@ public class WaypointService : IWaypointService
 
     public async Task<WaypointDto> CreateWaypoint(WaypointContract waypointContract)
     {
-        var isAdmin = await _tenantAccessService.IsAdministrator();
-        if (_multitenancy && !isAdmin)
-            throw new UnauthorizedAccessException(
-                "Unauthorized. You are missing the necessary permissions to issue this request.");
+        //var isAdmin = await _tenantAccessService.IsAdministrator();
+        //if (_multitenancy && !isAdmin)
+        //    throw new UnauthorizedAccessException(
+        //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
         var entity = _mapper.Map<WaypointContract, Waypoint>(waypointContract);
+        entity.Id = GuidExtensions.CheckGuid(entity.Id);
         var result = await _repository.Add(entity);
         var response = _mapper.Map<Waypoint, WaypointDto>(result);
         return response;
@@ -75,10 +76,10 @@ public class WaypointService : IWaypointService
 
     public async Task<bool> UpdateWaypoint(string id, WaypointContract waypointContract)
     {
-        var isAdmin = await _tenantAccessService.IsAdministrator();
-        if (_multitenancy && !isAdmin)
-            throw new UnauthorizedAccessException(
-                "Unauthorized. You are missing the necessary permissions to issue this request.");
+        //var isAdmin = await _tenantAccessService.IsAdministrator();
+        //if (_multitenancy && !isAdmin)
+        //    throw new UnauthorizedAccessException(
+        //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
         var entity = _mapper.Map<WaypointContract, Waypoint>(waypointContract);
         Guid.TryParse(id, out Guid guid);
@@ -88,10 +89,10 @@ public class WaypointService : IWaypointService
 
     public async Task<bool> DeleteWaypoint(string id)
     {
-        var isAdmin = await _tenantAccessService.IsAdministrator();
-        if (_multitenancy && !isAdmin)
-            throw new UnauthorizedAccessException(
-                "Unauthorized. You are missing the necessary permissions to issue this request.");
+        //var isAdmin = await _tenantAccessService.IsAdministrator();
+        //if (_multitenancy && !isAdmin)
+        //    throw new UnauthorizedAccessException(
+        //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
         Guid.TryParse(id, out Guid guid);
         var result = await _repository.Remove(guid);

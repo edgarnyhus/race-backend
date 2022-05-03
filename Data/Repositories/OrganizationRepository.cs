@@ -10,6 +10,7 @@ using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure.Data.Context;
 using Infrastructure.Data.Repositories.Helpers;
+using System.Collections.ObjectModel;
 
 namespace Infrastructure.Data.Repositories
 {
@@ -49,9 +50,9 @@ namespace Infrastructure.Data.Repositories
                 bool isValidId = Guid.TryParse(id, out guid);
 
                 var query = _dbContext.Set<Organization>()
-                        // Max 5 levels
-                        .Include(i => i.Children).ThenInclude(c => c.Children).ThenInclude(c => c.Children).ThenInclude(c => c.Children).ThenInclude(c => c.Children)
-                        .AsNoTracking();
+                    // Show 5 levels
+                    .Include(i => i.Children).ThenInclude(c => c.Children).ThenInclude(c => c.Children).ThenInclude(c => c.Children).ThenInclude(c => c.Children)
+                    .AsNoTracking();
 
                 if (isValidId)
                     result = await query.FirstOrDefaultAsync(x => x.Id == guid);
@@ -71,17 +72,38 @@ namespace Infrastructure.Data.Repositories
 
         public override async Task<Organization> Add(Organization entity)
         {
-            if (entity.ParentId != null)
-            {
-                var parent = await _dbContext.Set<Organization>()
-                    .FirstOrDefaultAsync(x => x.Id == entity.ParentId);
-                if (parent != null)
-                    entity.Level = parent.Level + 1;
-                else
-                    entity.Level = 0;
-            }
+            Organization parent = null;
+            parent = await _dbContext.Set<Organization>()
+                .Include(i => i.Children)
+                .FirstOrDefaultAsync(x => x.Id == entity.ParentId);
+            if (parent != null)
+                entity.Level = parent.Level + 1;
+            else
+                entity.Level = 0;
 
             var result = await _dbContext.Set<Organization>().AddAsync(entity);
+
+            if (parent == null)
+            {
+                // Add to tenant.Children collection
+                var tenant = await _dbContext.Set<Tenant>()
+                    .Include(i => i.Children)
+                    .FirstOrDefaultAsync(x => x.Id == entity.TenantId);
+                if (tenant != null)
+                {
+                    if (tenant.Children == null)
+                        tenant.Children = new Collection<Organization>();
+                    tenant.Children.Add(entity);
+                }
+            }
+            else
+            {
+                // Add to Organization.Children collection
+                if (parent.Children == null)
+                    parent.Children = new Collection<Organization>();
+                parent.Children.Add(entity);
+            }
+
             await _dbContext.SaveChangesAsync();
 
             await UpdateLevelAsync(entity, entity.Level + 1);
@@ -97,8 +119,7 @@ namespace Infrastructure.Data.Repositories
             var mapper = configuration.CreateMapper();
 
             Organization existingEntity;
-            Guid guid;
-            bool isValidId = Guid.TryParse(id, out guid);
+            bool isValidId = Guid.TryParse(id, out Guid guid);
 
             var query = _dbContext.Set<Organization>()
                     .Include(i => i.Parent)
@@ -106,11 +127,11 @@ namespace Infrastructure.Data.Repositories
                     .AsNoTracking();
 
             if (isValidId)
-                existingEntity = await query.FirstOrDefaultAsync(x => x.Id == guid);
+                existingEntity = await query
+                    .FirstOrDefaultAsync(x => x.Id == guid);
             else
                 existingEntity = await query
-                    .FirstOrDefaultAsync(x => x.CustomerNumber == id ||
-                    x.OrganizationNumber == id);
+                    .FirstOrDefaultAsync(x => x.CustomerNumber == id || x.OrganizationNumber == id);
 
             if (existingEntity == null)
             {
@@ -118,51 +139,43 @@ namespace Infrastructure.Data.Repositories
                 return result != null ? true : false;
             }
 
-            var parent = await _dbContext.Set<Organization>()
-                .FirstOrDefaultAsync(x => x.Id == entity.ParentId);
-            if (parent != null)
-                entity.Level = parent.Level + 1;
+            if (existingEntity.Parent != null)
+                entity.Level = existingEntity.Parent.Level + 1;
             else
                 entity.Level = 0;
 
-            await UpdateLevelAsync(entity, entity.Level + 1);
             //mapper.Map(entity, existingEntity);
             _dbContext.Update(entity);
+
+            //if (existingEntity.Parent?.Id != entity.ParentId)
+            //{
+            //    var parent = await _dbContext.Set<Organization>()
+            //        .Include(i => i.Children)
+            //        .FirstOrDefaultAsync(x => x.Id == entity.ParentId);
+
+            //}
+
             await _dbContext.SaveChangesAsync();
+
+            await UpdateLevelAsync(entity, entity.Level + 1);
 
             return true;
-        }
-
-        private async Task UpdateLevelAsync(Organization entity, int level)
-        {
-            if (entity.Children == null)
-                return;
-
-            foreach (var item in entity.Children)
-            {
-                var e = await _dbContext.Set<Organization>()
-                    .Include(i => i.Children)
-                    .FirstOrDefaultAsync(c => c.Id == item.Id);
-                e.Level = level;
-                if (e.Children.Count > 0)
-                    await UpdateLevelAsync(e, level + 1);
-            }
-            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<bool> Remove(string id)
         {
             Organization existingEntity;
-            Guid guid;
-            bool isValidId = Guid.TryParse(id, out guid);
+            bool isValidId = Guid.TryParse(id, out Guid guid);
 
             var query = _dbContext.Set<Organization>()
                     .Include(i => i.Children);
 
             if (isValidId)
-                existingEntity = await query.FirstOrDefaultAsync(x => x.Id == guid);
+                existingEntity = await query
+                    .FirstOrDefaultAsync(x => x.Id == guid);
             else
-                existingEntity = await query.FirstOrDefaultAsync(x => x.CustomerNumber == id);
+                existingEntity = await query
+                    .FirstOrDefaultAsync(x => x.CustomerNumber == id);
 
             if (existingEntity == null)
                 return false;
@@ -185,5 +198,22 @@ namespace Infrastructure.Data.Repositories
             return true;
         }
 
+
+        private async Task UpdateLevelAsync(Organization entity, int level)
+        {
+            if (entity.Children == null)
+                return;
+
+            foreach (var item in entity.Children)
+            {
+                var e = await _dbContext.Set<Organization>()
+                    .Include(i => i.Children)
+                    .FirstOrDefaultAsync(c => c.Id == item.Id);
+                e.Level = level;
+                if (e.Children.Count > 0)
+                    await UpdateLevelAsync(e, level + 1);
+            }
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

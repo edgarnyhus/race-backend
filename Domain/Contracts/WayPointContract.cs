@@ -9,7 +9,6 @@ namespace Domain.Contracts
     {
         public string? id { get; set; }
         public string? alias { get; set; }
-        public SignState? state { get; set; } = SignState.Inactive;
         public string? notes { get; set; }
         public LocationContract? location { get; set; }
         [JsonPropertyName("race_id")]

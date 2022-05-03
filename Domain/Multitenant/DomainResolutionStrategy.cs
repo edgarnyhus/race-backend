@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -24,8 +24,8 @@ namespace Domain.Multitenant
 
         public async Task<string?> GetTenantIdentifierAsync()
         {
-            return await Task.Run(() =>
-            {
+            //return await Task.Run(() =>
+            //{
                 var value = _httpContextAccessor.HttpContext?.User.Claims.FirstOrDefault(c => c.Type.EndsWith("email"))
                     ?.Value;
                 
@@ -46,8 +46,14 @@ namespace Domain.Multitenant
                     }
                 }
 
-                return string.IsNullOrEmpty(value) ? null : value.Split('@')[1];
-            });
+                if (string.IsNullOrEmpty(value))
+                    return null;
+
+                var delimiter = value.IndexOf('@') >= 0 ? '@' : ':';
+                var arr = value.Split(delimiter);
+
+                return arr.Count() < 2 ? null : arr[1];
+            //});
         }
 
         public async Task<string?> GetUserEmailAddressAsync()

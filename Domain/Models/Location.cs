@@ -16,7 +16,7 @@ namespace Domain.Models
         public DateTime? Timestamp { get; set; }
         public Guid? WaypointId { get; set; }
         public Waypoint? Waypoint { get; set; }
-        public Guid? SignpostId { get; set; }
-        public Signpost? Signpost { get; set; }
+        public Guid? SignId { get; set; }
+        public Sign? Sign { get; set; }
     }
 }

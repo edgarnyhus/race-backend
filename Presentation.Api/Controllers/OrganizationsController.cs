@@ -31,7 +31,7 @@ namespace Api.API
 
         // GET: api/organizations
         [HttpGet]
-        [Authorize("get:sign")]
+        [Authorize("read:organizations")]
         public async Task<IActionResult> GetOrganizations([FromQuery] QueryParameters queryParameters)
         {
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
@@ -51,7 +51,7 @@ namespace Api.API
 
         // GET api/organizations/<id>
         [HttpGet("{id}")]
-        [Authorize("get:sign")]
+        [Authorize("read:organizations")]
         public async Task<IActionResult> GetOrganizationById(string id)
         {
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
@@ -62,7 +62,7 @@ namespace Api.API
 
         //POST api/organizations/
         [HttpPost]
-        [Authorize("post:sign")]
+        [Authorize("create:organizations")]
         public async Task<IActionResult> CreateOrganization([FromBody] OrganizationContract contract)
         {
             try
@@ -83,7 +83,7 @@ namespace Api.API
 
         // PUT: api/organizations/<id>
         [HttpPut("{id}")]
-        [Authorize("put:sign")]
+        [Authorize("update:organizations")]
         public async Task<IActionResult> UpdateOrganization(string id, [FromBody] OrganizationContract contract)
         {
             try
@@ -104,7 +104,7 @@ namespace Api.API
 
         // DELETE: api/organizations/<id>
         [HttpDelete("{id}")]
-        [Authorize("delete:sign")]
+        [Authorize("delete:organizations")]
         public async Task<IActionResult> DeleteOrganization(string id)
         {
             try

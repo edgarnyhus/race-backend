@@ -19,12 +19,6 @@ namespace Domain.Specifications
                     AddCriteria(c => c.TenantId == tenantId);
             }
 
-            if (!string.IsNullOrEmpty(parameters.organization_id))
-            {
-                if (Guid.TryParse(parameters.organization_id, out Guid id))
-                    AddCriteria(c => c.Id == id);
-            }
-
             if (parameters.page_size > 0)
             {
                 var page = parameters.page == 0 ? parameters.page : parameters.page - 1;

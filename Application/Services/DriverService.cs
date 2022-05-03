@@ -58,9 +58,9 @@ namespace Application.Services
 
         public async Task<DriverDto> CreateDriver(DriverContract contract)
         {
-            var isAdmin = await _tenantAccessService.IsAdministrator();
-            if (_multitenancy && !isAdmin)
-                throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
+            //var isAdmin = await _tenantAccessService.IsAdministrator();
+            //if (_multitenancy && !isAdmin)
+            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
 
             var entity = await UpdateProperties(contract);
             
@@ -72,9 +72,9 @@ namespace Application.Services
 
         public async Task<bool> UpdateDriver(string id, DriverContract contract)
         {
-            var isAdmin = await _tenantAccessService.IsAdministrator();
-            if (_multitenancy && !isAdmin)
-                throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
+            //var isAdmin = await _tenantAccessService.IsAdministrator();
+            //if (_multitenancy && !isAdmin)
+            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
 
             var entity = await UpdateProperties(contract);
 
@@ -85,9 +85,9 @@ namespace Application.Services
 
         public async Task<bool> DeleteDriver(string id)
         {
-            var isAdmin = await _tenantAccessService.IsAdministrator();
-            if (_multitenancy && !isAdmin)
-                throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
+            //var isAdmin = await _tenantAccessService.IsAdministrator();
+            //if (_multitenancy && !isAdmin)
+            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
 
             Guid.TryParse(id, out Guid guid);
             var result = await _repository.Remove(guid);
@@ -106,6 +106,7 @@ namespace Application.Services
                 tenantId = tenant?.TenantId;
                 entity.TenantId = tenantId;
             }
+            entity.Id = GuidExtensions.CheckGuid(entity.Id);
             return entity;
         }
     }

@@ -19,17 +19,8 @@ public class GetSighGroupsSpecification : BaseSpecification<SignGroup>
                 AddCriteria(c => c.TenantId == tenantId);
         }
 
-        if (!string.IsNullOrEmpty(parameters.tenant_id))
-        {
-            if (Guid.TryParse(parameters.tenant_id, out Guid id))
-                AddCriteria(c => c.TenantId == id);
-        }
-
-        if (!string.IsNullOrEmpty(parameters.organization_id))
-        {
-            if (Guid.TryParse(parameters.organization_id, out Guid id))
-                AddCriteria(c => c.OrganizationId == id);
-        }
+        if (Guid.TryParse(parameters.organization_id, out Guid id))
+            AddCriteria(c => c.OrganizationId == id);
 
         if (parameters.page_size > 0)
         {

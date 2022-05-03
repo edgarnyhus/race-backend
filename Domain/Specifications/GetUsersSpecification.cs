@@ -13,26 +13,24 @@ namespace Domain.Specifications
 
         public GetUsersSpecification(IQueryParameters parameters) : base(parameters)
         {
-            if (parameters.multitenancy)
-            {
-                if (Guid.TryParse(parameters.tenant_id, out Guid tenantId))
-                    AddCriteria(c => c.TenantId == tenantId);
-            }
-
-            if (!string.IsNullOrEmpty(parameters.organization_id))
-            {
-                if (Guid.TryParse(parameters.organization_id, out Guid id))
-                    AddCriteria(c => c.OrganizationId == id);
-            }
-
             if (!string.IsNullOrEmpty(parameters.phone_number))
             {
                 AddCriteria(c => c.PhoneNumber == parameters.phone_number);
             }
-
-            if (!string.IsNullOrEmpty(parameters.email))
+            else if (!string.IsNullOrEmpty(parameters.email))
             {
                 AddCriteria(c => parameters.email.Equals(c.Email, StringComparison.OrdinalIgnoreCase));
+            }
+            else
+            {
+                if (parameters.multitenancy)
+                {
+                    if (Guid.TryParse(parameters.tenant_id, out Guid tenantId))
+                        AddCriteria(c => c.TenantId == tenantId);
+                }
+
+                if (Guid.TryParse(parameters.organization_id, out Guid id))
+                    AddCriteria(c => c.OrganizationId == id);
             }
 
             if (parameters.page_size > 0)

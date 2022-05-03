@@ -14,5 +14,6 @@ namespace Application.Interfaces
         Task<bool> UpdateSign(string id, SignContract contract);
         Task<bool> DeleteSign(string id);
         Task<int> GetCount(QueryParameters queryParameters);
+        List<KeyValuePair<int, string>> GetSignStates();
     }
 }

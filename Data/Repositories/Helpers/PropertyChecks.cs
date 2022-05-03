@@ -17,8 +17,8 @@ namespace Infrastructure.Data.Repositories.Helpers
             var props = entity.GetType().GetProperties();
             foreach (var prop in props)
             {
-                if (prop.Name == "Location" && existingEntity != null 
-                    && (entity.GetType() == typeof(Sign)))
+                if (prop.Name == "Location" && existingEntity != null
+                     && (entity.GetType() == typeof(Sign) || entity.GetType() == typeof(Waypoint)))
                 {
                     var newLoc = prop.GetValue(entity);
                     var currentLoc = prop.GetValue(existingEntity);
@@ -207,8 +207,7 @@ namespace Infrastructure.Data.Repositories.Helpers
 
                 Type entityType = entity.GetType();
                 Type propertyType = property.GetType();
-                var propertyName = entity is Sign ? "Sign" : entityType.Name;
-                var prop = propertyType.GetProperty(propertyName + "Id");
+                var prop = propertyType.GetProperty(entityType.Name + "Id");
                 if (prop != null && property.Id != existingProperty.Id)
                 {
                     Guid? id = null;
@@ -266,7 +265,7 @@ namespace Infrastructure.Data.Repositories.Helpers
                 if (parentEntity == null || entry == null)
                     return false;
                 var id = parentEntity.Id;
-                var keyName = parentEntity is Sign ? "SignId" : parentEntity.GetType().Name + "Id";
+                var keyName = parentEntity.GetType().Name + "Id";
                 var result = SetKey(ref entry, keyName, id);
                 return result;
             }

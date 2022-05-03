@@ -42,7 +42,7 @@ namespace Application.Services
             bool.TryParse(value, out _multitenancy);
         }
 
-        public async Task<IEnumerable<RaceDto>> GetAllRoutes(QueryParameters queryParameters)
+        public async Task<IEnumerable<RaceDto>> GetAllRaces(QueryParameters queryParameters)
         {
             var tenantValidation = new TenantValidation(_tenantAccessService, _multitenancy);
             await tenantValidation.Validate(queryParameters);
@@ -52,7 +52,7 @@ namespace Application.Services
             return response;
         }
 
-        public async Task<RaceDto> GetRouteById(string id)
+        public async Task<RaceDto> GetRaceById(string id)
         {
             Guid.TryParse(id, out Guid guid);
             var result = await _repository.FindById(guid);
@@ -60,11 +60,11 @@ namespace Application.Services
             return response;
         }
 
-        public async Task<RaceDto> CreateRoute(RaceContract contract)
+        public async Task<RaceDto> CreateRace(RaceContract contract)
         {
-            var isAdmin = await _tenantAccessService.IsAdministrator();
-            if (_multitenancy && !isAdmin)
-                throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
+            //var isAdmin = await _tenantAccessService.IsAdministrator();
+            //if (_multitenancy && !isAdmin)
+            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
 
             var entity = await UpdateProperties(contract, true);
 
@@ -75,11 +75,11 @@ namespace Application.Services
         }
 
  
-        public async Task<bool> UpdateRoute(string id, RaceContract contract)
+        public async Task<bool> UpdateRace(string id, RaceContract contract)
         {
-            var isAdmin = await _tenantAccessService.IsAdministrator();
-            if (_multitenancy && !isAdmin)
-                throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
+            //var isAdmin = await _tenantAccessService.IsAdministrator();
+            //if (_multitenancy && !isAdmin)
+            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
 
             var entity = await UpdateProperties(contract, false);
 
@@ -90,11 +90,11 @@ namespace Application.Services
         }
 
 
-        public async Task<bool> DeleteRoute(string id)
+        public async Task<bool> DeleteRace(string id)
         {
-            var isAdmin = await _tenantAccessService.IsAdministrator();
-            if (_multitenancy && !isAdmin)
-                throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
+            //var isAdmin = await _tenantAccessService.IsAdministrator();
+            //if (_multitenancy && !isAdmin)
+            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
 
             Guid.TryParse(id, out Guid guid);
             var result = await _repository.Remove(guid);
@@ -119,7 +119,7 @@ namespace Application.Services
 
             if (entity.OrganizationId == null)
             {
-                var user = await _userRepository.FindById(email);
+                 var user = await _userRepository.FindById(email);
                 entity.Organization = user?.Organization;
             }
 

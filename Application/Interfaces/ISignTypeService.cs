@@ -11,8 +11,8 @@ namespace Application.Interfaces
 	{
         Task<IEnumerable<SignTypeDto>> GetSignTypes(QueryParameters queryParameters);
         Task<SignTypeDto> GetSignTypeById(string id);
-        Task<SignTypeDto> CreateSignType(SignTypeContract containerTypeContract);
-        Task<bool> UpdateSignType(string id, SignTypeContract containerTypeContract);
+        Task<SignTypeDto> CreateSignType(SignTypeContract signGroupContract);
+        Task<bool> UpdateSignType(string id, SignTypeContract signGroupContract);
         Task<bool> DeleteSignType(string id);
         Task<int> GetCount(QueryParameters queryParameters);
     }

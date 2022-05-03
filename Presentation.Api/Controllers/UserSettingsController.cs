@@ -32,7 +32,7 @@ namespace Api.API
 
         // GET. api/user_settings
         [HttpGet]
-        [Authorize("get:equipment")]
+        [Authorize("read:users")]
         public async Task<IActionResult> GetUserSettings([FromQuery] QueryParameters queryParameters)
         {
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
@@ -50,11 +50,12 @@ namespace Api.API
 
             return Ok(result);
         }
+
         // GET. api/user_settings/[email]
         // GET. api/user_settings/[user id]
         // GET. api/user_settings/[userSetting id]
         [HttpGet("{id}")]
-        [Authorize("get:equipment")]
+        [Authorize("read:users")]
         public async Task<IActionResult> GetUserSettingsById(string id)
         {
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
@@ -68,7 +69,7 @@ namespace Api.API
 
         // POST. api/user_settings
         [HttpPost]
-        [Authorize("post:equipment")]
+        [Authorize("update:users")]
         public async Task<IActionResult> CreateUserSettings([FromBody] UserSettingsContract contract)
         {
             try
@@ -88,7 +89,7 @@ namespace Api.API
 
         // POST api/user_settings/[user id]
         [HttpPost("{id}")]
-        [Authorize("post:equipment")]
+        [Authorize("create:users")]
         public async Task<IActionResult> CreateDefaultUserSettings(string id)
         {
             try
@@ -109,7 +110,7 @@ namespace Api.API
         }
 
         [HttpPut("{id}")]
-        [Authorize("put:equipment")]
+        [Authorize("update:users")]
         public async Task<IActionResult> UpdateUserSettings(string id, [FromBody] UserSettingsContract contract)
         {
             try

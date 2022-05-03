@@ -4,7 +4,7 @@ namespace Domain.Queries.Helpers
 {
     public class QueryParameters : IQueryParameters
     {
-        //public EquipmentType equipment_type { get; set; }
+        //public SignType sign_type { get; set; }
         public QueryParameters()
         {
             max_page_size = 1000;
@@ -28,6 +28,7 @@ namespace Domain.Queries.Helpers
         public string? phone_number { get; set; }
         public string? email { get; set; }
         public string? race_id { get; set; }
+        public string? sign_group_id { get; set; }
 
         // Paging      
         public int max_page_size { get; set; }

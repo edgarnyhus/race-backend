@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -52,26 +52,126 @@ namespace Infrastructure.Data.Context
             {
                 using (var context = serviceScope.ServiceProvider.GetService<RaceBackendDbContext>())
                 {
-                    var v = await context.SignTypes.FirstOrDefaultAsync();
-                    if (v == null)
-                    //if (!context.ContainerTypes.)
+                    var tenant = await context.Tenants.FirstOrDefaultAsync(x => x.Name.StartsWith("Vink"));
+                    if (tenant == null)
                     {
-                        var containerType = new SignType
+                        tenant = new Tenant()
                         {
-                            Id = new Guid("33F1DE21-B5EE-4617-9A4C-98E38CBDA445"),
-                            Name = "B-0140",
-                            Description = "Waste container 140l",
+                            Id = new Guid("843c0cfa-dacf-46d8-8a89-20d66e107cca"),
+                            Name = "Vink",
+                            Description = "Vink Tenant",
+                            Identifier = "vink-kort.no"
                         };
-                        context.SignTypes.Add(containerType);
 
-                        containerType = new SignType
+                        context.Tenants.Add(tenant);
+                    }
+
+                    tenant = await context.Tenants.FirstOrDefaultAsync(x => x.Name.StartsWith("Locus"));
+                    if (tenant == null)
+                    {
+                        tenant = new Tenant()
                         {
-                            Id = new Guid("F2B20013-18E4-4ABB-B1D2-CE8664CBCF1F"),
-                            Name = "B-0240",
-                            Description = "Waste container 240l",
+                            Id = new Guid("50837eca-3ef5-456f-8799-580c4a4a10fc"),
+                            Name = "LocusBase",
+                            Description = "LocusBase Tenant",
+                            Identifier = "locusbase.no"
                         };
-                        context.SignTypes.Add(containerType);
 
+                        context.Tenants.Add(tenant);
+                    }
+                    await context.SaveChangesAsync();
+
+                    var organization = await context.Organizations.FirstOrDefaultAsync(x => x.Name.StartsWith("Vink"));
+                    if (organization == null)
+                    {
+                        organization = new Organization()
+                        {
+                            Id = new Guid("a471808d-4dc8-4b3a-88c9-ad7e5b24ed9a"),
+                            Name = "Vink AS",
+                            Identifier = "vink-kort.no",
+                            Level = 1,
+                            TenantId = new Guid("843c0cfa-dacf-46d8-8a89-20d66e107cca")
+                        };
+
+                        context.Organizations.Add(organization);
+                    }
+
+                    organization = await context.Organizations.FirstOrDefaultAsync(x => x.Name.StartsWith("Locus"));
+                    if (organization == null)
+                    {
+                        organization = new Organization()
+                        {
+                            Id = new Guid("9e6af333-68df-4328-afd2-83f234b0aeed"),
+                            Name = "LocusBase AS",
+                            Identifier = "locusbase.no",
+                            Level = 1,
+                            TenantId = new Guid("50837eca-3ef5-456f-8799-580c4a4a10fc")
+                        };
+
+                        context.Organizations.Add(organization);
+                    }
+                    await context.SaveChangesAsync();
+
+                    var signType = await context.SignTypes.FirstOrDefaultAsync();
+                    if (signType == null)
+                    {
+                        signType = new SignType
+                        {
+                            Id = new Guid("224ce0ea-0842-4e4e-83d4-b5720fcb15de"),
+                            Name = "Other danger",
+                            Description = "Other danger - bicycle race",
+                        };
+                        context.SignTypes.Add(signType);
+
+                        signType = new SignType
+                        {
+                            Id = new Guid("85dff9b7-2851-488e-8dc1-469c090bb25c"),
+                            Name = "302",
+                            Description = "Sign 302 - No entry",
+                        };
+                        context.SignTypes.Add(signType);
+
+                        signType = new SignType
+                        {
+                            Id = new Guid("920794a0-f089-4d5e-a5b0-6da9aa98b493"),
+                            Name = "560",
+                            Description = "Sign 560 - Information board",
+                        };
+                        context.SignTypes.Add(signType);
+
+                        signType = new SignType
+                        {
+                            Id = new Guid("89a8ad02-0894-4ba6-9858-496b3ec689e9"),
+                            Name = "370",
+                            Description = "Sign 370 - No stopping",
+                        };
+                        context.SignTypes.Add(signType);
+
+                        signType = new SignType
+                        {
+                            Id = new Guid("4f94bfd5-a1be-493b-8466-4d41aee293f3"),
+                            Name = "372",
+                            Description = "Sign 372 - No parking",
+                        };
+                        context.SignTypes.Add(signType);
+
+                        signType = new SignType
+                        {
+                            Id = new Guid("f631e471-6fc6-48c3-82fb-213a14501327"),
+                            Name = "149",
+                            Description = "Sign 149 - Risk for queue",
+                        };
+                        context.SignTypes.Add(signType);
+
+                        signType = new SignType
+                        {
+                            Id = new Guid("cfe9e77a-e16e-4542-b4a7-3ef5b1054c23"),
+                            Name = "Direction",
+                            Description = "Directional marker",
+                        };
+                        context.SignTypes.Add(signType);
+
+                        await context.SaveChangesAsync();
                     }
                 }
             }

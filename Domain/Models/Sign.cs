@@ -1,4 +1,4 @@
-﻿#nullable enable
+﻿        #nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -14,7 +14,7 @@ namespace Domain.Models
         Unknown = 0,
         Inactive,
         Active,
-        Missig
+        Discarded
     }
 
     public class Sign : EntityBase
@@ -25,12 +25,17 @@ namespace Domain.Models
         public int? SequenceNumber { get; set; } = 1;
         public SignType? SignType { get; set; }
         public string? QrCode { get; set; }
+        public SignState? State { get; set; } = SignState.Inactive;
+        public Location? Location { get; set; }
+        public Point? GeoLocation { get; set; }
         public string? Notes { get; set; }
+        public Guid? RaceId { get; set; }
+        public Race? Race { get; set; }
+        public Guid? SignGroupId { get; set; }
+        public SignGroup? SignGroup { get; set; }
         public Guid? OrganizationId { get; set; }
         public Organization? Organization { get; set; }
-        public Guid? SignGroupId { get; set; }
-        public  SignGroup? SignGroup { get; set; }
-        public Guid? SignpostId { get; set; }
-        public Signpost? Signpost { get; set; }
+        public DateTime? LastScanned { get; set; }
+        public string? LastScannedBy { get; set; }
     }
 }

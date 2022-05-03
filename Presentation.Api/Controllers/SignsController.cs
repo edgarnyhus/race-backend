@@ -18,7 +18,7 @@ using RestSharp;
 namespace Api.API
 {
     [ApiController]
-    [Route("api/equipment/[controller]")]
+    [Route("api/[controller]")]
     //[Authorize]
     public class SignsController : ControllerBase
     {
@@ -26,18 +26,19 @@ namespace Api.API
         private readonly ILogger<SignsController> _logger;
         private AttachmentCreatedDateResolver _resolver;
 
-        public SignsController(ISignService containerService, AttachmentCreatedDateResolver resolver, ILogger<SignsController> logger)
+        public SignsController(ISignService service, AttachmentCreatedDateResolver resolver, ILogger<SignsController> logger)
         {
-            _service = containerService;
+            _service = service;
             _resolver = resolver;
             _logger = logger;
         }
 
         // GET: api/signs
         [HttpGet]
-        [Authorize("get:sign")]
+        [Authorize("read:signs")]
         public async Task<IActionResult> GetSigns([FromQuery] QueryParameters queryParameters)
         {
+            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
             var result = await _service.GetSigns(queryParameters);
@@ -55,18 +56,20 @@ namespace Api.API
         }
 
         [HttpGet("count")]
-        [Authorize("get:sign")]
+        [Authorize("read:signs")]
         public async Task<IActionResult> GetCount([FromQuery] QueryParameters queryParameters)
         {
+            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             var result = await _service.GetCount(queryParameters);
             return Ok(result);
         }
 
         // GET: api/signs/<id>
         [HttpGet("{id}")]
-        [Authorize("get:sign")]
+        [Authorize("read:signs")]
         public async Task<IActionResult> GetSignById(string id)
         {
+            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
             
             var result = await _service.GetSignById(id);
@@ -75,9 +78,10 @@ namespace Api.API
 
         // POST: api/signs
         [HttpPost]
-        [Authorize("post:sign")]
+        [Authorize("create:signs")]
         public async Task<IActionResult> CreateSign([FromBody] SignContract contract)
         {
+            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
@@ -99,15 +103,16 @@ namespace Api.API
 
         // PUT: api/signs/<id>
         [HttpPut("{id}")]
-        [Authorize("put:sign")]
+        [Authorize("update:signs")]
         public async Task<IActionResult> UpdateSign(string id, [FromBody] SignContract contract)
         {
+            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
             
                 var result = await _service.UpdateSign(id, contract);
-                return result ? (IActionResult) Ok("Container updated") : NotFound();
+                return result ? (IActionResult) Ok("Sign updated") : NotFound();
             }
             catch (Exception ex)
             {
@@ -120,13 +125,14 @@ namespace Api.API
 
         // DELETE: api/signs/<id>
         [HttpDelete("{id}")]
-        [Authorize("delete:sign")]
+        [Authorize("delete:signs")]
         public async Task<IActionResult> DeleteSign(string id)
         {
+            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 var result = await _service.DeleteSign(id);
-                return result ? (IActionResult) Ok("Container deleted") : NotFound();
+                return result ? (IActionResult) Ok("Sign deleted") : NotFound();
             }
             catch (Exception ex)
             {
@@ -135,6 +141,15 @@ namespace Api.API
                     error = ex.InnerException.Message;
                 throw new HttpResponseException((int)HttpStatusCode.Conflict, error);
             }
+        }
+
+        // GET: api/routes/signs/states
+        [HttpGet("signs/states")]
+        [Authorize("read:signs")]
+        public IActionResult GetSignStates()
+        {
+            var result = _service.GetSignStates();
+            return (IActionResult)Ok(result);
         }
     }
 }

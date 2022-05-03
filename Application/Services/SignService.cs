@@ -13,6 +13,10 @@ using Domain.Models;
 using Domain.Multitenant;
 using Domain.Specifications;
 using Microsoft.Extensions.Configuration;
+using IronBarCode;
+using Net.Codecrete;
+using shortid;
+using System.Text.RegularExpressions;
 
 namespace Application.Services
 {
@@ -64,12 +68,57 @@ namespace Application.Services
 
         public async Task<SignDto> CreateSign(SignContract contract)
         {
-            var isAdmin = await _tenantAccessService.IsAdministrator();
-            if (_multitenancy && !isAdmin)
-                throw new UnauthorizedAccessException(
-                    "Unauthorized. You are missing the necessary permissions to issue this request.");
+            //var isAdmin = await _tenantAccessService.IsAdministrator();
+            //if (_multitenancy && !isAdmin)
+            //    throw new UnauthorizedAccessException(
+            //        "Unauthorized. You are missing the necessary permissions to issue this request.");
+
+            QueryParameters parameters = new QueryParameters();
+            var tenantValidation = new TenantValidation(_tenantAccessService, _multitenancy);
+            await tenantValidation.Validate(parameters);
 
             var entity = _mapper.Map<SignContract, Sign>(contract);
+
+            if (entity.SignType == null || entity.SignType.Id == null)
+                throw new ArgumentException("Property 'sign_type.id' must be set");
+                
+            if (entity.TenantId == null)
+            {
+                if (Guid.TryParse(parameters.tenant_id, out Guid tid))
+                    entity.TenantId = tid;
+            }
+            if (entity.OrganizationId == null)
+            {
+                if (Guid.TryParse(parameters.organization_id, out Guid oid))
+                    entity.TenantId = oid;
+            }
+
+            entity.Name = ComposeName(entity.Name, (int)entity.SequenceNumber);
+
+            // If 'name' exists, discard the sign and increase the sequence number
+            var existingEntity = await _repository.FindById(entity.Name);
+            if (existingEntity != null)
+            {
+                existingEntity.State = SignState.Discarded;
+                await _repository.Update((Guid)existingEntity.Id, existingEntity);
+
+                entity.SequenceNumber++;
+                entity.Name = ComposeName(entity.Name, (int)entity.SequenceNumber);
+            }
+
+            if (string.IsNullOrEmpty(entity.QrCode))
+            {
+                // Use ticks to generate unique id
+                //var ticks = new DateTime(2016, 1, 1).Ticks;
+                //var ans = DateTime.Now.Ticks - ticks;
+                //var uniqueId = ans.ToString("x");
+                // or
+                //Guid.NewGuid().ToString("n")
+                // or
+                var options = new shortid.Configuration.GenerationOptions(true, false, 12);
+                entity.QrCode = ShortId.Generate(options).ToUpper();
+            }
+            entity.State = SignState.Inactive;
             entity = await _repository.Add(entity);
 
             var result = _mapper.Map<Sign, SignDto>(entity);
@@ -78,10 +127,10 @@ namespace Application.Services
 
         public async Task<bool> UpdateSign(string id, SignContract contract)
         {
-            var isAdmin = await _tenantAccessService.IsAdministrator();
-            if (_multitenancy && !isAdmin)
-                throw new UnauthorizedAccessException(
-                    "Unauthorized. You are missing the necessary permissions to issue this request.");
+            //var isAdmin = await _tenantAccessService.IsAdministrator();
+            //if (_multitenancy && !isAdmin)
+            //    throw new UnauthorizedAccessException(
+            //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
             var entity = _mapper.Map<SignContract, Sign>(contract);
             Guid.TryParse(id, out Guid guid);
@@ -91,10 +140,10 @@ namespace Application.Services
 
         public async Task<bool> DeleteSign(string id)
         {
-            var isAdmin = await _tenantAccessService.IsAdministrator();
-            if (_multitenancy && !isAdmin)
-                throw new UnauthorizedAccessException(
-                    "Unauthorized. You are missing the necessary permissions to issue this request.");
+            //var isAdmin = await _tenantAccessService.IsAdministrator();
+            //if (_multitenancy && !isAdmin)
+            //    throw new UnauthorizedAccessException(
+            //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
             Guid.TryParse(id, out Guid guid);
             var result = await _repository.Remove(guid);
@@ -110,6 +159,30 @@ namespace Application.Services
 
             var result = _repository.Count(new GetSignsSpecification(queryParameters));
             return result;
+        }
+
+
+        public List<KeyValuePair<int, string>> GetSignStates()
+        {
+            var result = _repository.GetSignStates();
+            return result;
+        }
+
+        private string ComposeName(string str, int sequenceNumber)
+        {
+            string name = "";
+
+            var re = new Regex("^([a-z ]+)(.+)", RegexOptions.IgnoreCase);
+            var m = re.Match(str);
+            if (m.Success)
+            {
+                name = m.Groups[1].Value;
+            }
+            else
+                name = str;
+            var s = string.Format("{0}-{1:000}", name, sequenceNumber);
+            name += "-" + sequenceNumber.ToString("D3");
+            return name;
         }
     }
 }

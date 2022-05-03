@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Helpers;
@@ -40,8 +40,8 @@ public class SignTypeService : ISignTypeService
 
     public async Task<IEnumerable<SignTypeDto>> GetSignTypes(QueryParameters queryParameters)
     {
-        var tenantValidation = new TenantValidation(_tenantAccessService, _multitenancy);
-        await tenantValidation.Validate(queryParameters);
+        //var tenantValidation = new TenantValidation(_tenantAccessService, _multitenancy);
+        //await tenantValidation.Validate(queryParameters);
 
         var result = await _repository.Find(new GetSignTypesSpecification(queryParameters));
         var response = _mapper.Map<IEnumerable<SignType>, IEnumerable<SignTypeDto>>(result);
@@ -58,10 +58,10 @@ public class SignTypeService : ISignTypeService
 
     public async Task<SignTypeDto> CreateSignType(SignTypeContract contract)
     {
-        var isAdmin = await _tenantAccessService.IsAdministrator();
-        if (_multitenancy && !isAdmin)
-            throw new UnauthorizedAccessException(
-                "Unauthorized. You are missing the necessary permissions to issue this request.");
+        //var isAdmin = await _tenantAccessService.IsAdministrator();
+        //if (_multitenancy && !isAdmin)
+        //    throw new UnauthorizedAccessException(
+        //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
         var entity = _mapper.Map<SignTypeContract, SignType>(contract);
         var result = await _repository.Add(entity);
@@ -72,10 +72,10 @@ public class SignTypeService : ISignTypeService
 
     public async Task<bool> UpdateSignType(string id, SignTypeContract contract)
     {
-        var isAdmin = await _tenantAccessService.IsAdministrator();
-        if (_multitenancy && !isAdmin)
-            throw new UnauthorizedAccessException(
-                "Unauthorized. You are missing the necessary permissions to issue this request.");
+        //var isAdmin = await _tenantAccessService.IsAdministrator();
+        //if (_multitenancy && !isAdmin)
+        //    throw new UnauthorizedAccessException(
+        //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
         var entity = _mapper.Map<SignTypeContract, SignType>(contract);
         Guid.TryParse(id, out Guid guid);
@@ -85,10 +85,10 @@ public class SignTypeService : ISignTypeService
 
     public async Task<bool> DeleteSignType(string id)
     {
-        var isAdmin = await _tenantAccessService.IsAdministrator();
-        if (_multitenancy && !isAdmin)
-            throw new UnauthorizedAccessException(
-                "Unauthorized. You are missing the necessary permissions to issue this request.");
+        //var isAdmin = await _tenantAccessService.IsAdministrator();
+        //if (_multitenancy && !isAdmin)
+        //    throw new UnauthorizedAccessException(
+        //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
         Guid.TryParse(id, out Guid guid);
         var result = await _repository.Remove(guid);

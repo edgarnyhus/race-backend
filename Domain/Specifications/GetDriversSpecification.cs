@@ -15,15 +15,12 @@ namespace Domain.Specifications
         {
             if (parameters.multitenancy)
             {
-                Guid.TryParse(parameters.tenant_id, out Guid tenantId);
-                AddCriteria(c => c.TenantId == tenantId);
+                if (Guid.TryParse(parameters.tenant_id, out Guid tenantId))
+                    AddCriteria(c => c.TenantId == tenantId);
             }
 
-            if (!string.IsNullOrEmpty(parameters.organization_id))
-            {
-                Guid.TryParse(parameters.organization_id, out Guid id);
+            if (Guid.TryParse(parameters.organization_id, out Guid id))
                 AddCriteria(c => c.OrganizationId == id);
-            }
 
             if (parameters.page_size > 0)
             {

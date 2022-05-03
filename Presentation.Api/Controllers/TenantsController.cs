@@ -32,7 +32,7 @@ namespace Api.API
 
         // GET: api/tenant
         [HttpGet]
-        [Authorize("get:tenant")]
+        [Authorize("read:tenants")]
         public async Task<IActionResult> GetTenants([FromQuery] QueryParameters queryParameters)
         {
             try
@@ -62,7 +62,7 @@ namespace Api.API
 
         // GET api/tenant/<id>
         [HttpGet("{id}")]
-        [Authorize("get:tenant")]
+        [Authorize("read:tenants")]
         public async Task<IActionResult> GetTenantById(string id)
         {
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
@@ -73,7 +73,7 @@ namespace Api.API
 
         // POST: api/tenant/
         [HttpPost]
-        [Authorize("post:tenant")]
+        [Authorize("create:tenants")]
         public async Task<IActionResult> CreateTenant([FromBody] TenantContract contract)
         {
             try
@@ -94,7 +94,7 @@ namespace Api.API
 
         // PUT: api/tenant/<id>
         [HttpPut("{id}")]
-        [Authorize("put:tenant")]
+        [Authorize("update:tenants")]
         public async Task<IActionResult> UpdateTenant(string id, [FromBody] TenantContract contract)
         {
             try
@@ -115,7 +115,7 @@ namespace Api.API
 
         // DELETE: api/tenant/<id>
         [HttpDelete("{id}")]
-        [Authorize("delete:tenant")]
+        [Authorize("delete:tenants")]
         public async Task<IActionResult> DeleteTenant(string id)
         {
             try

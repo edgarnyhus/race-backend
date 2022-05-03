@@ -14,7 +14,7 @@ using Domain.Queries.Helpers;
 namespace Api.API
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/races")]
     public class RacesController : ControllerBase
     {
         private readonly IRaceService _service;
@@ -26,14 +26,15 @@ namespace Api.API
             _resolver = resolver;
         }
 
-        // GET: api/rputes
+        // GET: api/races
         [HttpGet]
-        [Authorize("get:sign")]
-        public async Task<IActionResult> GetRoutes([FromQuery] QueryParameters queryParameters)
+        [Authorize("read:races")]
+        public async Task<IActionResult> GetRaces([FromQuery] QueryParameters queryParameters)
         {
+            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
-            var result = await _service.GetAllRoutes(queryParameters);
+            var result = await _service.GetAllRaces(queryParameters);
 
             int count = ((IList)result).Count;
             var metadata = new
@@ -47,27 +48,29 @@ namespace Api.API
             return Ok(result);
         }
 
-        // GET: api/routes/<id>
+        // GET: api/races/<id>
         [HttpGet("{id}")]
-        [Authorize("get:sign")]
-        public async Task<IActionResult> GetRouteById(string id)
+        [Authorize("read:races")]
+        public async Task<IActionResult> GetRaceById(string id)
         {
+            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
-            var result = await _service.GetRouteById(id);
+            var result = await _service.GetRaceById(id);
             return result != null ? (IActionResult) Ok(result) : NotFound();
         }
 
         // POST: api/routes
         [HttpPost]
-        [Authorize("post:sign")]
-        public async Task<IActionResult> CreateRoute([FromBody] RaceContract contract)
+        [Authorize("create:races")]
+        public async Task<IActionResult> CreateRace([FromBody] RaceContract contract)
         {
+            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
-                var result = await _service.CreateRoute(contract);
+                var result = await _service.CreateRace(contract);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -79,14 +82,15 @@ namespace Api.API
             }
         }
 
-        // PUT: api/routes
+        // PUT: api/races
         [HttpPut("{id}")]
-        [Authorize("put:sign")]
-        public async Task<IActionResult> UpdateRoute(string id, RaceContract contract)
+        [Authorize("update:races")]
+        public async Task<IActionResult> UpdateRace(string id, RaceContract contract)
         {
+            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
-                var result = await _service.UpdateRoute(id, contract);
+                var result = await _service.UpdateRace(id, contract);
                 if (!result)
                     return NotFound();
                 return Ok("Race updated");
@@ -100,16 +104,17 @@ namespace Api.API
             }
         }
 
-        // DELETE: api/routes
+        // DELETE: api/races
         [HttpDelete("{id}")]
-        [Authorize("delete:sign")]
-        public async Task<IActionResult> DeleteRoute(string id)
+        [Authorize("delete:races")]
+        public async Task<IActionResult> DeleteRace(string id)
         {
+            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
-                var result = await _service.DeleteRoute(id);
+                var result = await _service.DeleteRace(id);
                 return result ? (IActionResult) Ok("Race deleted.") : NotFound();
             }
             catch (Exception ex)

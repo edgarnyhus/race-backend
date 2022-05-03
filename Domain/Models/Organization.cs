@@ -17,7 +17,7 @@ namespace Domain.Models
         public virtual ICollection<Organization>? Children { get; set; }
         public virtual ICollection<Driver>? Drivers { get; set; }
         public virtual ICollection<Sign>? Signs { get; set; }
-        public virtual ICollection<Race>? Routes { get; set; }
+        public virtual ICollection<Race>? Races { get; set; }
         public virtual ICollection<User>? Users { get; set; }
         public Guid? ParentId { get; set; }
         public Organization? Parent { get; set; }

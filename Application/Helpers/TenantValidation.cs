@@ -35,12 +35,12 @@ namespace Application.Helpers
                     if (string.IsNullOrEmpty(parameters.organization_id))
                         parameters.organization_id = tenant.OrganizationId.ToString();
                 }
-                if (!string.IsNullOrEmpty(parameters.organization_id))
-                {
-                    var has_parent = await _tenantAccessService.HasParent(parameters.organization_id);
-                    if (!has_parent)
-                        parameters.organization_id = null;
-                }
+                //if (!string.IsNullOrEmpty(parameters.organization_id))
+                //{
+                //    var has_parent = await _tenantAccessService.HasParent(parameters.organization_id);
+                //    if (!has_parent)
+                //        parameters.organization_id = null;
+                //}
 
                 parameters.multitenancy = !await _tenantAccessService.IsGlobalAdministrator() && _multitenancy;
             }

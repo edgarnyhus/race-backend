@@ -13,6 +13,8 @@ using Domain.Models;
 using Domain.Queries.Helpers;
 using Infrastructure.Data.Repositories.Helpers;
 using Infrastructure.Data.Context;
+using System.Collections.ObjectModel;
+
 
 namespace Infrastructure.Data.Repositories
 {
@@ -31,17 +33,47 @@ namespace Infrastructure.Data.Repositories
         public override async Task<IEnumerable<Sign>> Find(ISpecification<Sign> specification)
         {
             var query = _dbContext.Set<Sign>()
+                .Include(i => i.SignType)
                 .AsNoTracking();
 
             var result = SpecificationEvaluator<Sign>.GetQuery(query, specification, true);
             return await result.ToListAsync();
         }
 
+        public async Task<Sign> FindById(string id)
+        {
+            var query = _dbContext.Set<Sign>()
+                .Include(i => i.SignType)
+                .AsNoTracking();
+
+            Sign result = null;
+            if (Guid.TryParse(id, out Guid gid))
+                result = await query.FirstOrDefaultAsync(x => x.Id == gid);
+            else
+                result = await query.FirstOrDefaultAsync(x => x.QrCode == id || x.Name == id);
+
+            return result;
+        }
+
         public override async Task<Sign> Add(Sign entity)
         {
-            await PropertyChecks.CheckProperties(_dbContext, entity, null);
+            //await PropertyChecks.CheckProperties(_dbContext, entity, null);
 
+            var signType = await _dbContext.Set<SignType>()
+                .Include(i => i.Signs)
+                .FirstOrDefaultAsync(x => x.Id == entity.SignType.Id);
+
+            if (signType == null)
+                throw new ArgumentException("Property 'sign_type.id' must be set to an existing sign_type");
+
+            entity.SignType = null;
             entity = await base.Add(entity);
+
+            if (signType.Signs == null)
+                signType.Signs = new Collection<Sign>();
+            signType.Signs.Add(entity);
+
+            await _dbContext.SaveChangesAsync();
             return entity;
         }
 
@@ -54,7 +86,8 @@ namespace Infrastructure.Data.Repositories
 
             var existingEntity = await _dbContext.Set<Sign>()
                 .Where(e => id == e.Id)
-                .Include(u => u.Organization)
+                .Include(u => u.SignType)
+                .Include(x => x.Location)
                 .FirstOrDefaultAsync();
 
             if (existingEntity == null)
@@ -66,85 +99,38 @@ namespace Infrastructure.Data.Repositories
             }
 
             await PropertyChecks.CheckProperties(_dbContext, entity, existingEntity);
+
+            var signType = await _dbContext.Set<SignType>()
+                .Include(i => i.Signs)
+                .FirstOrDefaultAsync(x => x.Id == existingEntity.SignType.Id);
+
+            if (entity.SignType.Id != existingEntity.SignType.Id)
+                signType.Signs.Remove(existingEntity);
+
             mapper.Map(entity, existingEntity);
+            entity.SignType = null;
 
             if (IsDevelopment)
                 foreach (var entry in _dbContext.ChangeTracker.Entries())
                     Console.WriteLine($"{entry.Metadata.Name}, {entry.State}");
 
+            //_dbContext.Set<Sign>().Update(entity);
+
+            if (signType.Signs == null)
+                signType.Signs = new Collection<Sign>();
+            signType.Signs.Add(entity);
+
             await _dbContext.SaveChangesAsync();
             return true;
         }
 
-
-        /// 
-        /// SignGroups
-        /// 
-        public async Task<IEnumerable<SignGroup>> GetSignGroups(ISpecification<SignGroup> specification)
+        public List<KeyValuePair<int, string>> GetSignStates()
         {
-            var query = _dbContext.Set<SignGroup>()
-                .AsNoTracking();
-
-            var result = SpecificationEvaluator<SignGroup>.GetQuery(query, specification, true);
-            return await result.ToListAsync();
-        }
-
-        public async Task<SignGroup> GetSignGroupById(Guid id)
-        {
-            var configuration = new MapperConfiguration(cfg =>
-                cfg.CreateMap<SignGroup, SignGroup>());
-
-            var result = await _dbContext.Set<SignGroup>()
-                .Where(e => id == e.Id)
-                .ProjectTo<SignGroup>(configuration)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
+            var result = Enum.GetValues(typeof(SignState))
+                .Cast<int>()
+                .ToDictionary(ee => (int)ee, ee => Enum.GetName(typeof(SignState), ee)).ToList();
 
             return result;
-        }
-
-        public async Task<SignGroup> CreateSignGroup(SignGroup entity)
-        {
-            var result = await _dbContext.Set<SignGroup>().AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
-            return result.Entity;
-        }
-
-        public async Task<bool> UpdateSignGroup(Guid id, SignGroup entity)
-        {
-            var configuration = new MapperConfiguration(cfg =>
-                cfg.CreateMap<SignGroup, SignGroup>());
-
-            var existingEntity = await _dbContext.Set<SignGroup>()
-                .ProjectTo<SignGroup>(configuration)
-                .FirstOrDefaultAsync(e => id == e.Id);
-
-            if (existingEntity == null)
-            {
-                var result = await _dbContext.Set<SignGroup>().AddAsync(entity);
-                await _dbContext.SaveChangesAsync();
-                return true;
-            }
-
-            _mapper.Map(entity, existingEntity);
-            _dbContext.Entry(existingEntity).State = EntityState.Modified;
-
-            await _dbContext.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<bool> DeleteSignGroup(Guid id)
-        {
-            var entity = await _dbContext.Set<SignGroup>()
-                .Where(e => id == e.Id)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-            if (entity == null)
-                return false;
-
-            _dbContext.Set<SignGroup>().Remove(entity);
-            await _dbContext.SaveChangesAsync();
-            return true;
         }
     }
 }

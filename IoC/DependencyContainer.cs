@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.IoC
 {
-    public class DependencyContainer
+    public class DependencySignGroup
     {
         public static void RegisterServices(IServiceCollection services)
         {
@@ -21,7 +21,6 @@ namespace Infrastructure.IoC
             services.AddScoped<IOrganizationService, OrganizationService>();
             services.AddScoped<IRaceService, RaceService>();
             services.AddScoped<ISignGroupService, SignGroupService>();
-            services.AddScoped<ISignpostService, SignpostService>();
             services.AddScoped<ISignService, SignService>();
             services.AddScoped<ISignTypeService, SignTypeService>();
             services.AddScoped<ITenantService, TenantService>();
@@ -34,7 +33,6 @@ namespace Infrastructure.IoC
             services.AddTransient<IRepository<Organization>, OrganizationRepository>();
             services.AddTransient<IRepository<Race>, RaceRepository>();
             services.AddTransient<IRepository<SignGroup>, SignGroupRepository>();
-            services.AddTransient<IRepository<Signpost>, SignpostRepository>();
             services.AddTransient<IRepository<Sign>, SignRepository>();
             services.AddTransient<IRepository<SignType>, SignTypeRepository>();
             services.AddTransient<IRepository<Tenant>, TenantRepository>();

@@ -1,4 +1,5 @@
-﻿using Domain.Models;
+﻿
+using Domain.Models;
 using System;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +33,6 @@ namespace Infrastructure.Data.Context
         public DbSet<UserSettings> UserSettings { get; set; }
         public DbSet<Race> Races { get; set; }
         public DbSet<Waypoint> Waypoints { get; set; }
-        public DbSet<Signpost> Signposts { get; set; }
 
 
         protected override void OnConfiguring( DbContextOptionsBuilder optionsBuilder )
@@ -85,13 +85,13 @@ namespace Infrastructure.Data.Context
                 .HasForeignKey(f => f.RaceId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Race>()
-                .HasMany(p => p.Signposts)
+                .HasMany(p => p.Signs)
                 .WithOne(p => p.Race)
                 .HasForeignKey(f => f.RaceId)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Race>()
                 .HasOne(p => p.Organization)
-                .WithMany(b => b.Routes)
+                .WithMany(b => b.Races)
                 .HasForeignKey(f => f.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -108,40 +108,15 @@ namespace Infrastructure.Data.Context
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            modelBuilder.Entity<Signpost>()
-                .Property(p => p.Alias)
-                .HasMaxLength(64);
-            modelBuilder.Entity<Signpost>()
-                .Property(p => p.Notes)
-                .HasMaxLength(512);
-            modelBuilder.Entity<Signpost>()
-                .Property(e => e.State)
-                .HasMaxLength(32);
-            modelBuilder.Entity<Signpost>()
-                .Property(e => e.LastScannedBy)
-                .HasMaxLength(64);
-            modelBuilder.Entity<Signpost>()
-                .HasOne(p => p.Race)
-                .WithMany(b => b.Signposts)
-                .HasForeignKey(f => f.RaceId)
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Signpost>()
-                .HasOne(p => p.Sign)
-                .WithOne(b => b.Signpost)
-                .HasForeignKey<Sign>(b => b.SignpostId)
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Signpost>()
-                .Property(p => p.State)
-                .HasConversion(
-                    v => v.ToString(),
-                    v => (SignState)Enum.Parse(typeof(SignState), v));
-
             modelBuilder.Entity<Sign>()
                 .HasIndex(p => p.Id)
                 .IsUnique();
             modelBuilder.Entity<Sign>()
                 .Property(p => p.Name)
                 .HasMaxLength(64);
+            //modelBuilder.Entity<Sign>()
+            //    .HasIndex(p => p.Name)
+            //    .IsUnique();
             modelBuilder.Entity<Sign>()
                 .Property(p => p.Notes)
                 .HasMaxLength(512);
@@ -152,11 +127,6 @@ namespace Infrastructure.Data.Context
                 .HasIndex(u => u.QrCode)
                 .IsUnique();
             modelBuilder.Entity<Sign>()
-                .HasOne(p => p.Signpost)
-                .WithOne(b => b.Sign)
-                .HasForeignKey<Sign>(b => b.SignpostId)
-                .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<Sign>()
                 .HasOne(p => p.Organization)
                 .WithMany(b => b.Signs)
                 .HasForeignKey(f => f.OrganizationId)
@@ -164,9 +134,25 @@ namespace Infrastructure.Data.Context
             modelBuilder.Entity<Sign>()
                 .HasOne(p => p.SignGroup)
                 .WithMany(b => b.Signs)
-                .HasForeignKey(f => f.SignpostId)
+                .HasForeignKey(f => f.SignGroupId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+            modelBuilder.Entity<Sign>()
+                .Property(e => e.State)
+                .HasMaxLength(32);
+            modelBuilder.Entity<Sign>()
+                .Property(e => e.LastScannedBy)
+                .HasMaxLength(64);
+            modelBuilder.Entity<Sign>()
+                .HasOne(p => p.Race)
+                .WithMany(b => b.Signs)
+                .HasForeignKey(f => f.RaceId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Sign>()
+                .Property(p => p.State)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (SignState)Enum.Parse(typeof(SignState), v));
+
             modelBuilder.Entity<SignType>()
                 .Property(p => p.Name)
                 .HasMaxLength(64);
@@ -179,7 +165,6 @@ namespace Infrastructure.Data.Context
             modelBuilder.Entity<SignType>()
                 .HasMany(p => p.Signs)
                 .WithOne(p => p.SignType)
-                .HasForeignKey(f => f.SignpostId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<SignGroup>()
@@ -194,7 +179,7 @@ namespace Infrastructure.Data.Context
             modelBuilder.Entity<SignGroup>()
                 .HasMany(p => p.Signs)
                 .WithOne(p => p.SignGroup)
-                .HasForeignKey(f => f.SignpostId)
+                .HasForeignKey(f => f.SignGroupId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Location>()
@@ -214,7 +199,7 @@ namespace Infrastructure.Data.Context
                 .WithOne(b => b.Location)
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<Location>()
-                .HasOne(p => p.Signpost)
+                .HasOne(p => p.Sign)
                 .WithOne(b => b.Location)
                 .OnDelete(DeleteBehavior.Restrict);
             

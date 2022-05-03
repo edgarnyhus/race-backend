@@ -12,7 +12,7 @@ using NetTopologySuite.Geometries;
 namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(RaceBackendDbContext))]
-    [Migration("20220412195729_InitialCreate")]
+    [Migration("20220426132322_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -74,7 +74,7 @@ namespace Infrastructure.Data.Migrations
                     b.Property<double>("Longitude")
                         .HasColumnType("double");
 
-                    b.Property<Guid?>("SignpostId")
+                    b.Property<Guid?>("SignId")
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime?>("Timestamp")
@@ -86,7 +86,7 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SignpostId")
+                    b.HasIndex("SignId")
                         .IsUnique();
 
                     b.HasIndex("WaypointId")
@@ -185,6 +185,16 @@ namespace Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<Point>("GeoLocation")
+                        .HasColumnType("point");
+
+                    b.Property<DateTime?>("LastScanned")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("LastScannedBy")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
                     b.Property<string>("Name")
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
@@ -200,14 +210,21 @@ namespace Infrastructure.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
+                    b.Property<Guid?>("RaceId")
+                        .HasColumnType("char(36)");
+
                     b.Property<int?>("SequenceNumber")
                         .HasColumnType("int");
 
                     b.Property<Guid?>("SignGroupId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid?>("SignpostId")
+                    b.Property<Guid?>("SignTypeId")
                         .HasColumnType("char(36)");
+
+                    b.Property<string>("State")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
 
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("char(36)");
@@ -222,8 +239,11 @@ namespace Infrastructure.Data.Migrations
                     b.HasIndex("QrCode")
                         .IsUnique();
 
-                    b.HasIndex("SignpostId")
-                        .IsUnique();
+                    b.HasIndex("RaceId");
+
+                    b.HasIndex("SignGroupId");
+
+                    b.HasIndex("SignTypeId");
 
                     b.ToTable("Signs");
                 });
@@ -256,44 +276,6 @@ namespace Infrastructure.Data.Migrations
                     b.HasIndex("OrganizationId");
 
                     b.ToTable("SignGroups");
-                });
-
-            modelBuilder.Entity("Domain.Models.Signpost", b =>
-                {
-                    b.Property<Guid?>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("Alias")
-                        .HasMaxLength(64)
-                        .HasColumnType("varchar(64)");
-
-                    b.Property<Point>("GeoLocation")
-                        .HasColumnType("point");
-
-                    b.Property<DateTime?>("LastScanned")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("LastScannedBy")
-                        .HasMaxLength(64)
-                        .HasColumnType("varchar(64)");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(512)
-                        .HasColumnType("varchar(512)");
-
-                    b.Property<Guid?>("RaceId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("State")
-                        .HasMaxLength(32)
-                        .HasColumnType("varchar(32)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RaceId");
-
-                    b.ToTable("Signposts");
                 });
 
             modelBuilder.Entity("Domain.Models.SignType", b =>
@@ -467,9 +449,9 @@ namespace Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Domain.Models.Location", b =>
                 {
-                    b.HasOne("Domain.Models.Signpost", "Signpost")
+                    b.HasOne("Domain.Models.Sign", "Sign")
                         .WithOne("Location")
-                        .HasForeignKey("Domain.Models.Location", "SignpostId")
+                        .HasForeignKey("Domain.Models.Location", "SignId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Domain.Models.Waypoint", "Waypoint")
@@ -477,7 +459,7 @@ namespace Infrastructure.Data.Migrations
                         .HasForeignKey("Domain.Models.Location", "WaypointId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("Signpost");
+                    b.Navigation("Sign");
 
                     b.Navigation("Waypoint");
                 });
@@ -498,7 +480,7 @@ namespace Infrastructure.Data.Migrations
             modelBuilder.Entity("Domain.Models.Race", b =>
                 {
                     b.HasOne("Domain.Models.Organization", "Organization")
-                        .WithMany("Routes")
+                        .WithMany("Races")
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict);
 
@@ -512,28 +494,28 @@ namespace Infrastructure.Data.Migrations
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Domain.Models.Race", "Race")
+                        .WithMany("Signs")
+                        .HasForeignKey("RaceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Domain.Models.SignGroup", "SignGroup")
                         .WithMany("Signs")
-                        .HasForeignKey("SignpostId")
+                        .HasForeignKey("SignGroupId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Domain.Models.SignType", "SignType")
                         .WithMany("Signs")
-                        .HasForeignKey("SignpostId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Domain.Models.Signpost", "Signpost")
-                        .WithOne("Sign")
-                        .HasForeignKey("Domain.Models.Sign", "SignpostId")
+                        .HasForeignKey("SignTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Organization");
 
+                    b.Navigation("Race");
+
                     b.Navigation("SignGroup");
 
                     b.Navigation("SignType");
-
-                    b.Navigation("Signpost");
                 });
 
             modelBuilder.Entity("Domain.Models.SignGroup", b =>
@@ -543,16 +525,6 @@ namespace Infrastructure.Data.Migrations
                         .HasForeignKey("OrganizationId");
 
                     b.Navigation("Organization");
-                });
-
-            modelBuilder.Entity("Domain.Models.Signpost", b =>
-                {
-                    b.HasOne("Domain.Models.Race", "Race")
-                        .WithMany("Signposts")
-                        .HasForeignKey("RaceId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Race");
                 });
 
             modelBuilder.Entity("Domain.Models.User", b =>
@@ -592,7 +564,7 @@ namespace Infrastructure.Data.Migrations
 
                     b.Navigation("Drivers");
 
-                    b.Navigation("Routes");
+                    b.Navigation("Races");
 
                     b.Navigation("Signs");
 
@@ -601,21 +573,19 @@ namespace Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Domain.Models.Race", b =>
                 {
-                    b.Navigation("Signposts");
+                    b.Navigation("Signs");
 
                     b.Navigation("Waypoints");
+                });
+
+            modelBuilder.Entity("Domain.Models.Sign", b =>
+                {
+                    b.Navigation("Location");
                 });
 
             modelBuilder.Entity("Domain.Models.SignGroup", b =>
                 {
                     b.Navigation("Signs");
-                });
-
-            modelBuilder.Entity("Domain.Models.Signpost", b =>
-                {
-                    b.Navigation("Location");
-
-                    b.Navigation("Sign");
                 });
 
             modelBuilder.Entity("Domain.Models.SignType", b =>

@@ -15,9 +15,10 @@ public class GetSignTypesSpecification : BaseSpecification<SignType>
     {
         if (parameters.multitenancy)
         {
-            Guid.TryParse(parameters.tenant_id, out Guid tenantId);
-            AddCriteria(c => c.TenantId == tenantId);
+            if (Guid.TryParse(parameters.tenant_id, out Guid tenantId))
+                AddCriteria(c => c.TenantId == tenantId);
         }
+
 
         if (parameters.page_size > 0)
         {

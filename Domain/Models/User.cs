@@ -39,16 +39,16 @@ namespace Domain.Models
 
     public class User : EntityBase
     {
-        public string? UserId { get; set; }
         [ForeignKey("TenantId")]
         public Guid? TenantId { get; set; }
-        [ForeignKey("user_id")]
+        [JsonProperty("user_id")]
+        public string? UserId { get; set; }
         public string? Email { get; set; }
         [JsonProperty("email_verified")]
         public bool? EmailVerified { get; set; }
         [JsonProperty("phone_number")]
         public string? PhoneNumber { get; set; }
-        [JsonProperty("phone_verified")]
+        [JsonProperty("created_at")]
         public DateTime? CreatedAt { get; set; }
         [JsonProperty("updated_at")]
         public DateTime? UpdatedAt { get; set; }
@@ -65,7 +65,6 @@ namespace Domain.Models
         [JsonProperty("logins_count")]
         public int? LoginsCount { get; set; }
         public bool? Blocked { get; set; }
-        [JsonProperty("given_name")]
         public string? Password { get; set; }
         public string? Connection { get; set; } = null!;
         public Guid? OrganizationId { get; set; }

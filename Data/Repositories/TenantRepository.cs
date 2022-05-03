@@ -36,6 +36,7 @@ namespace Infrastructure.Data.Repositories
                     .ThenInclude(c => c.Children).ThenInclude(c => c.Children).ThenInclude(c => c.Children).ThenInclude(c => c.Children)
                 .AsNoTracking();
 
+            //var result = await Task.Run(() => SpecificationEvaluator<Tenant>.GetQuery(query, specification, true)); ;
             var result = SpecificationEvaluator<Tenant>.GetQuery(query, specification, true);
             return await result.ToListAsync();
         }

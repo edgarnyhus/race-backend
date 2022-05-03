@@ -43,6 +43,9 @@ namespace Application.Services
             var tenantValidation = new TenantValidation(_tenantAccessService, _multitenancy);
             await tenantValidation.Validate(queryParameters);
 
+            if (!(await _tenantAccessService.IsAdministrator()))
+                throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
+
             var result = await _repository.Find(new GetTenantsSpecification(queryParameters));
             var response = _mapper.Map<IEnumerable<Tenant>, IEnumerable<TenantDto>>(result);
             return response;
@@ -58,8 +61,8 @@ namespace Application.Services
 
         public async Task<TenantDto> CreateTenant(TenantContract contract)
         {
-            if (!(await _tenantAccessService.IsGlobalAdministrator()))
-                throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
+            //if (!(await _tenantAccessService.IsAdministrator()))
+            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
 
             var entity = _mapper.Map<TenantContract, Tenant>(contract);
             UpdateProperties(entity);
@@ -71,8 +74,8 @@ namespace Application.Services
 
         public async Task<bool> UpdateTenant(string id, TenantContract contract)
         {
-            if (!(await _tenantAccessService.IsGlobalAdministrator()))
-                throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
+            //if (!(await _tenantAccessService.IsAdministrator()))
+            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
 
             var entity = _mapper.Map<TenantContract, Tenant>(contract);
             Guid.TryParse(id, out Guid guid);
@@ -82,8 +85,8 @@ namespace Application.Services
 
         public async Task<bool> DeleteTenant(string id)
         {
-            if (!(await _tenantAccessService.IsGlobalAdministrator()))
-                throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
+            //if (!(await _tenantAccessService.IsAdministrator()))
+            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
 
             Guid.TryParse(id, out Guid guid);
             var result = await _repository.Remove(guid);

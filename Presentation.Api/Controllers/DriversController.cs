@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -31,9 +29,11 @@ namespace Api.API
 
         // GET: api/drivers
         [HttpGet]
-        [Authorize("get:api")]
+        [Authorize("read:drivers")]
         public async Task<IActionResult> GetDrivers([FromQuery] QueryParameters queryParameters)
         {
+            throw new NotImplementedException("Function is not yet implemented");
+
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
             var result = await _service.GetDrivers(queryParameters);
@@ -53,9 +53,11 @@ namespace Api.API
 
         // GET: api/drivers<id>
         [HttpGet("{id}")]
-        [Authorize("get:api")]
+        [Authorize("read:drivers")]
         public async Task<IActionResult> GetDriverById(string id)
         {
+            throw new NotImplementedException("Function is not yet implemented");
+
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
             var result = await _service.GetDriverById(id);
@@ -66,9 +68,11 @@ namespace Api.API
 
         // POST: api/drivers
         [HttpPost]
-        [Authorize("post:api")]
+        [Authorize("create:drivers")]
         public async Task<IActionResult> CreateDriver([FromBody] DriverContract contract)
         {
+            throw new NotImplementedException("Function is not yet implemented");
+
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
@@ -88,9 +92,11 @@ namespace Api.API
 
         // PUT: api/drivers
         [HttpPut("{id}")]
-        [Authorize("put:api")]
+        [Authorize("update:drivers")]
         public async Task<IActionResult> UpdateDriver(string id, DriverContract contract)
         {
+            throw new NotImplementedException("Function is not yet implemented");
+
             try
             {
                 var result = await _service.UpdateDriver(id, contract);
@@ -110,9 +116,11 @@ namespace Api.API
 
         // DELETE: api/drivers
         [HttpDelete("{id}")]
-        [Authorize("delete:vehicles")]
+        [Authorize("delete:drivers")]
         public async Task<IActionResult> DeleteDriver(string id)
         {
+            throw new NotImplementedException("Function is not yet implemented");
+
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);

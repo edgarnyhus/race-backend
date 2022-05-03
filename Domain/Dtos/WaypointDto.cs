@@ -11,6 +11,5 @@ namespace Domain.Dtos
         public LocationDto? location { get; set; }
         [JsonPropertyName("race_id")]
         public string? raceId { get; set; }
-        //public Race? race { get; set; }
     }
 }

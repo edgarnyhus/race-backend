@@ -75,7 +75,7 @@ namespace Domain.Multitenant
 
         public async Task<bool> IsGlobalAdministrator()
         {
-            // All users with role 'superadmin' or with domain: @vink.kort.no
+            // All users with role 'superadmin' or with domain:vink.kort.no
             var roles = await _tenantResolutionStrategy.GetUserRolesAsync();
             if (string.IsNullOrEmpty(roles))
             {

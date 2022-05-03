@@ -88,9 +88,9 @@ namespace Application.Services
 
         public async Task<bool> DeleteOrganization(string id)
         {
-            var isAdmin = await _tenantAccessService.IsAdministrator();
-            if (_multitenancy && !isAdmin)
-                throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
+            //var isAdmin = await _tenantAccessService.IsAdministrator();
+            //if (_multitenancy && !isAdmin)
+            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
 
             var result = await _repository.Remove(id);
             return result;

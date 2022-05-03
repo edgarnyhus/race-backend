@@ -12,16 +12,14 @@ namespace Domain.Dtos
         public string? tenantId { get; set; }
         public string? name { get; set; }
         public string? identifier { get; set; }
-        [JsonPropertyName("parent_id")]
-        public Guid? parentId { get; set; }
-        //public OrganizationDto? Parent { get; set; }
-        public int level { get; set; } = 1;
         [JsonPropertyName("customer_number")]
         public string? customerNumber { get; set; }
         [JsonPropertyName("organization_number")]
         public string? organizationNumber { get; set; }
-        public virtual ICollection<OrganizationDto>? children { get; set; }
+        public int level { get; set; } = 1;
+        [JsonPropertyName("parent_id")]
+        public Guid? parentId { get; set; }
         public OrganizationDto? parent { get; set; }
-        public int Level { get; set; } = 1;
+        public virtual ICollection<OrganizationDto>? children { get; set; }
     }
 }

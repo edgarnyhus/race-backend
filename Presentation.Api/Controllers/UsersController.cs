@@ -32,7 +32,7 @@ namespace Api.API
         }
 
         [HttpGet]
-        [Authorize("get:users")]
+        [Authorize("read:users")]
         public async Task<ActionResult<IEnumerable<User>>> GetAllUsers([FromQuery] QueryParameters queryParameters)
         {
             try
@@ -65,7 +65,7 @@ namespace Api.API
         }
 
         [HttpGet("{id}")]
-        [Authorize("get:users")]
+        [Authorize("read:users")]
         public async Task<ActionResult<User>> GetUserById(string id)
         {
             try
@@ -88,7 +88,7 @@ namespace Api.API
         }
 
         [HttpPost]
-        [Authorize("post:users")]
+        [Authorize("create:users")]
         public async Task<ActionResult<UserContract>> CreateUser(UserContract contract)
         {
             try
@@ -111,7 +111,7 @@ namespace Api.API
         }
 
         [HttpPut("{id}")]
-        [Authorize("put:users")]
+        [Authorize("update:users")]
         public async Task<ActionResult<UserContract>> UpdateUser(string id, UserContract contract)
         {
             try
@@ -159,7 +159,7 @@ namespace Api.API
 
 
         [HttpGet("{id}/roles")]
-        [Authorize("get:roles")]
+        [Authorize("read:users")]
         public async Task<ActionResult<List<Role>>> GetUserRoles(string id)
         {
             try
@@ -183,7 +183,7 @@ namespace Api.API
 
 
         [HttpPut("{id}/roles")]
-        [Authorize("put:roles")]
+        [Authorize("update:users")]
         public async Task<ActionResult<bool>> SetUserRoles(string id, AppMetadataDto metadata)
         {
             try
@@ -206,7 +206,7 @@ namespace Api.API
         }
 
         [HttpDelete("{id}/roles")]
-        [Authorize("delete:roles")]
+        [Authorize("delete:users")]
         public async Task<ActionResult<bool>> DeleteUserRoles(string id, AppMetadataDto metadata)
         {
             try
@@ -229,7 +229,7 @@ namespace Api.API
         }
 
         [HttpGet("roles")]
-        [Authorize("get:roles")]
+        [Authorize("read:users")]
         public async Task<IActionResult> GetAllRoles()
         {
             try

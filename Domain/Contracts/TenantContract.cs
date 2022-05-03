@@ -12,6 +12,6 @@ namespace Domain.Contracts
         /// Comma-separated list of tenant identifiers, i.e. domain, subdomains
         public string? identifier { get; set; } = null!;
 
-        public ICollection<OrganizationContract>? organizations { get; set; }
+        //public ICollection<OrganizationContract>? organizations { get; set; }
     }
 }

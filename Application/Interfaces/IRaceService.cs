@@ -10,10 +10,10 @@ namespace Application.Interfaces
 {
     public interface IRaceService
     {
-        Task<IEnumerable<RaceDto>> GetAllRoutes(QueryParameters queryParameters);
-        Task<RaceDto> GetRouteById(string id);
-        Task<RaceDto> CreateRoute(RaceContract contract);
-        Task<bool> UpdateRoute(string id, RaceContract contract);
-        Task<bool> DeleteRoute(string id);
+        Task<IEnumerable<RaceDto>> GetAllRaces(QueryParameters queryParameters);
+        Task<RaceDto> GetRaceById(string id);
+        Task<RaceDto> CreateRace(RaceContract contract);
+        Task<bool> UpdateRace(string id, RaceContract contract);
+        Task<bool> DeleteRace(string id);
     }
 }

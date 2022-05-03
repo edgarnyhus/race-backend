@@ -1,7 +1,9 @@
 {
   "ConnectionStrings": {
-    "RaceBackendDbConnection": "server=localhost; port=3306; database=getacademy3487; uid=root; pwd=penny9X",
-    "RaceBackendDbConnection_": "server=159.223.208.93; port=44567; database=getacademy3487; uid=getacademy3487; pwd=NoKj2mhBF0hOA5z8"
+    "RaceBackendDbConnection__": "server=localhost; port=3306; database=getacademy3487; uid=root; pwd=penny9X",
+    "RaceBackendDbConnection_": "Persist Security Info=False; Username=getacademy3487@localhost; Password=NoKj2mhBF0hOA5z8; database=getacademy3487; server=159.223.208.93; port=44567; Connect Timeout=60; default command timeout=300; SslMode=none;",
+    "RaceBackendDbConnection_1": "server=159.223.208.93; port=3306; database=getacademy3487; username=getacademy3487; password=NoKj2mhBF0hOA5z8",
+    "RaceBackendDbConnection": "username=academy; password=NoKj2mhBF0hOA5z8; database=getacademy3487; server=159.223.208.93; port=3306"
   },
   "useMySql": "true"
 }

@@ -54,12 +54,6 @@ namespace Api
                 .ReverseMap();
             CreateMap<SignGroupContract, SignGroup>()
                 .ReverseMap();
-            CreateMap<Signpost, Signpost>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-            CreateMap<Signpost, SignpostDto>()
-                .ReverseMap();
-            CreateMap<SignpostContract, Signpost>()
-                .ReverseMap();
             CreateMap<SignType, SignType>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<SignType, SignTypeDto>()

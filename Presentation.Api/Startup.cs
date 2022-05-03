@@ -24,7 +24,7 @@ using Api.Authentication;
 using Application.Helpers;
 using Domain.Interfaces;
 using Domain.Multitenant;
-
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace Api
 {
@@ -48,11 +48,12 @@ namespace Api
         private bool IsDevelopment { get; set; } = false;
 
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        // This method gets called by the runtime. Use this method to add services to RacePlanner.
         public void ConfigureServices(IServiceCollection services)
         {
             var connectionString = Configuration.GetConnectionString("RaceBackendDbConnection");
             string cors = Configuration["Auth0:AllowWithOrigins"];
+
             // CORS config start
             services.AddCors(options =>
             {
@@ -76,7 +77,9 @@ namespace Api
             // CORS config end
 
             // Authentication config start
-            string authority = Configuration["Auth0:Domain"];
+            string domain = $"https://{Configuration["Auth0:Domain"]}/";
+            string authority = $"https://{Configuration["Auth0:Domain"]}/";
+            string audience = Configuration["Auth0:Audience"];
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -84,7 +87,8 @@ namespace Api
             }).AddJwtBearer(options =>
             {
                 options.Authority = authority;
-                options.Audience = Configuration["Auth0:Audience"];
+                options.Audience = audience;
+                options.RequireHttpsMetadata = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     NameClaimType = ClaimTypes.NameIdentifier
@@ -157,8 +161,8 @@ namespace Api
             // Includes support for Razor Pages and controllers.
             services.AddMvc(options => options.EnableEndpointRouting = false);
 
-            services.AddRazorPages(options => { options.Conventions.AddPageRoute("/index", "index/{qrcode?}"); })
-                .AddNewtonsoftJson();
+            //services.AddRazorPages(options => { options.Conventions.AddPageRoute("/index", "index/{qrcode?}"); })
+            //    .AddNewtonsoftJson();
 
             services.AddControllers(options =>
                     options.Filters.Add(new HttpResponseExceptionFilter())
@@ -236,7 +240,7 @@ namespace Api
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
 
-                // Access to XMLHttpRequest at 'http://localhost:8000/api/equipment/containers?
+                // Access to XMLHttpRequest at 'http://localhost:8000/api/signs?
                 //   within_radius={latitude:59.050476,longitude:10.023207,radius:1250}&page=1'
                 // from origin 'http://localhost:8080' has been blocked by CORS policy:
                 // Response to preflight request doesn't pass access control check:
@@ -253,6 +257,11 @@ namespace Api
 
             app.UseCors(_myAllowSpecificOrigins);
 
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
+
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -261,7 +270,7 @@ namespace Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapRazorPages();
+                //endpoints.MapRazorPages();
             });
 
             app.UseMvc();
@@ -277,7 +286,7 @@ namespace Api
 
         private static void RegisterServices(IServiceCollection services)
         {
-            DependencyContainer.RegisterServices(services);
+            DependencySignGroup.RegisterServices(services);
         }
     }
 }

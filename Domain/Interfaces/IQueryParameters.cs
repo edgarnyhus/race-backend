@@ -22,6 +22,7 @@ namespace Domain.Interfaces
         string? phone_number { get; set; }
         string? email { get; set; }
         string? race_id { get; set; }
+        string? sign_group_id { get; set; }
 
         // Paging      
         int page { get; set; }

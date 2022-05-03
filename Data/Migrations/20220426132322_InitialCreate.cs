@@ -140,9 +140,9 @@ namespace Infrastructure.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    TenantId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     UserId = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    TenantId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
                     Email = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     PhoneNumber = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true)
@@ -197,35 +197,6 @@ namespace Infrastructure.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Signposts",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Alias = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    State = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Notes = table.Column<string>(type: "varchar(512)", maxLength: 512, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    GeoLocation = table.Column<Point>(type: "point", nullable: true),
-                    RaceId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    LastScannedBy = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    LastScanned = table.Column<DateTime>(type: "datetime(6)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Signposts", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Signposts_Races_RaceId",
-                        column: x => x.RaceId,
-                        principalTable: "Races",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "Waypoints",
                 columns: table => new
                 {
@@ -243,6 +214,60 @@ namespace Infrastructure.Data.Migrations
                         name: "FK_Waypoints_Races_RaceId",
                         column: x => x.RaceId,
                         principalTable: "Races",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Signs",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    TenantId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    Name = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SequenceNumber = table.Column<int>(type: "int", nullable: true),
+                    SignTypeId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    QrCode = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    State = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    GeoLocation = table.Column<Point>(type: "point", nullable: true),
+                    Notes = table.Column<string>(type: "varchar(512)", maxLength: 512, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RaceId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    SignGroupId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    OrganizationId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
+                    LastScanned = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    LastScannedBy = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Signs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Signs_Organizations_OrganizationId",
+                        column: x => x.OrganizationId,
+                        principalTable: "Organizations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Signs_Races_RaceId",
+                        column: x => x.RaceId,
+                        principalTable: "Races",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Signs_SignGroups_SignGroupId",
+                        column: x => x.SignGroupId,
+                        principalTable: "SignGroups",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Signs_SignTypes_SignTypeId",
+                        column: x => x.SignTypeId,
+                        principalTable: "SignTypes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 })
@@ -273,53 +298,6 @@ namespace Infrastructure.Data.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Signs",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    TenantId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    Name = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    SequenceNumber = table.Column<int>(type: "int", nullable: true),
-                    QrCode = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Notes = table.Column<string>(type: "varchar(512)", maxLength: 512, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    OrganizationId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    SignGroupId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    SignpostId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Signs", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Signs_Organizations_OrganizationId",
-                        column: x => x.OrganizationId,
-                        principalTable: "Organizations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Signs_SignGroups_SignpostId",
-                        column: x => x.SignpostId,
-                        principalTable: "SignGroups",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Signs_Signposts_SignpostId",
-                        column: x => x.SignpostId,
-                        principalTable: "Signposts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Signs_SignTypes_SignpostId",
-                        column: x => x.SignpostId,
-                        principalTable: "SignTypes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "Locations",
                 columns: table => new
                 {
@@ -330,15 +308,15 @@ namespace Infrastructure.Data.Migrations
                     Longitude = table.Column<double>(type: "double", nullable: false),
                     Timestamp = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     WaypointId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
-                    SignpostId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci")
+                    SignId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Locations", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Locations_Signposts_SignpostId",
-                        column: x => x.SignpostId,
-                        principalTable: "Signposts",
+                        name: "FK_Locations_Signs_SignId",
+                        column: x => x.SignId,
+                        principalTable: "Signs",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -361,9 +339,9 @@ namespace Infrastructure.Data.Migrations
                 column: "RaceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Locations_SignpostId",
+                name: "IX_Locations_SignId",
                 table: "Locations",
-                column: "SignpostId",
+                column: "SignId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -405,11 +383,6 @@ namespace Infrastructure.Data.Migrations
                 column: "OrganizationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Signposts_RaceId",
-                table: "Signposts",
-                column: "RaceId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Signs_Id",
                 table: "Signs",
                 column: "Id",
@@ -427,10 +400,19 @@ namespace Infrastructure.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Signs_SignpostId",
+                name: "IX_Signs_RaceId",
                 table: "Signs",
-                column: "SignpostId",
-                unique: true);
+                column: "RaceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Signs_SignGroupId",
+                table: "Signs",
+                column: "SignGroupId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Signs_SignTypeId",
+                table: "Signs",
+                column: "SignTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tenants_Id",
@@ -476,25 +458,22 @@ namespace Infrastructure.Data.Migrations
                 name: "Locations");
 
             migrationBuilder.DropTable(
-                name: "Signs");
+                name: "UserSettings");
 
             migrationBuilder.DropTable(
-                name: "UserSettings");
+                name: "Signs");
 
             migrationBuilder.DropTable(
                 name: "Waypoints");
 
             migrationBuilder.DropTable(
+                name: "Users");
+
+            migrationBuilder.DropTable(
                 name: "SignGroups");
 
             migrationBuilder.DropTable(
-                name: "Signposts");
-
-            migrationBuilder.DropTable(
                 name: "SignTypes");
-
-            migrationBuilder.DropTable(
-                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Races");

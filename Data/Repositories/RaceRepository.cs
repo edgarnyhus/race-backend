@@ -23,41 +23,11 @@ namespace Infrastructure.Data.Repositories
             _logger = logger;
         }
 
-
-        public override async Task<IEnumerable<Race>> Find(ISpecification<Race> specification)
-        {
-            var query = _dbContext.Set<Race>()
-                .Include((x => x.Waypoints))
-                .Include(x => x.Waypoints).ThenInclude(z => z.Location)
-                .Include(x => x.Signposts).ThenInclude(y => y.Sign).ThenInclude(z => z.SignType)
-                .Include(x => x.Signposts).ThenInclude(z => z.Location)
-                .Include(x => x.Organization)
-                .AsNoTracking();
-
-            var result =  SpecificationEvaluator<Race>.GetQuery(query, specification, true);
-            return await result.ToListAsync();
-        }
-
-        public override async Task<Race> FindById(Guid id)
-        {
-            var result = await _dbContext.Set<Race>()
-                .Where(e => id == e.Id)
-                .Include((x => x.Waypoints))
-                .Include(x => x.Waypoints).ThenInclude(z => z.Location)
-                .Include(x => x.Signposts).ThenInclude(y => y.Sign).ThenInclude(z => z.SignType)
-                .Include(x => x.Signposts).ThenInclude(z => z.Location)
-                .Include(x => x.Organization)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            return result;
-        }
-
         public override async Task<Race> Add(Race entity)
         {
             try
             {
-                await PropertyChecks.CheckPrincipleAndDependant(_dbContext, entity, entity.Organization);
+                //await PropertyChecks.CheckPrincipleAndDependant(_dbContext, entity, entity.Organization);
                 var result = await _dbContext.Set<Race>().AddAsync(entity);
                 await _dbContext.SaveChangesAsync();
                 return result.Entity;
@@ -76,11 +46,6 @@ namespace Infrastructure.Data.Repositories
         {
             var existingEntity = await _dbContext.Set<Race>()
                 .Where(e => id == e.Id)
-                .Include((x => x.Waypoints))
-                .Include(x => x.Waypoints).ThenInclude(z => z.Location)
-                .Include(x => x.Signposts).ThenInclude(y => y.Sign).ThenInclude(z => z.SignType)
-                .Include(x => x.Signposts).ThenInclude(z => z.Location)
-                .Include(x => x.Organization)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
 
@@ -90,16 +55,8 @@ namespace Infrastructure.Data.Repositories
                 return assignment != null;
             }
             
-            await PropertyChecks.CheckPrincipleAndDependant(_dbContext, entity, entity.Organization);
-            //_mapper.Map(entity, existingEntity);
-            if (!string.IsNullOrEmpty(entity.CreatedBy))
-                existingEntity.CreatedBy = entity.CreatedBy;
-            if (!string.IsNullOrEmpty(entity.Name))
-                existingEntity.Name = entity.Name;
-            if (entity.ScheduledAt != null)
-                existingEntity.ScheduledAt = entity.ScheduledAt;
-            if (entity.UpdatedAt != null)
-                existingEntity.UpdatedAt = entity.UpdatedAt;
+            //await PropertyChecks.CheckPrincipleAndDependant(_dbContext, entity, entity.Organization);
+            _mapper.Map(entity, existingEntity);
 
             if (IsDevelopment)
                 foreach (var entry in _dbContext.ChangeTracker.Entries())

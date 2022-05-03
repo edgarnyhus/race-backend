@@ -15,8 +15,6 @@ namespace Domain.Contracts
         [JsonPropertyName("phone_number")]
         public string? phoneNumber { get; set; }
         public string? email { get; set; }
-        [JsonPropertyName("vehicle_id")]
-        public string? vehicleId { get; set; }
         [JsonPropertyName("race_id")]
         public string? raceId { get; set; }
         public RaceContract? race { get; set; }

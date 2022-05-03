@@ -17,7 +17,7 @@ namespace Domain.Models
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public ICollection<Waypoint>? Waypoints { get; set; }
-        public ICollection<Signpost>? Signposts { get; set; }
+        public ICollection<Sign>? Signs { get; set; }
         public string? Notes { get; set; }
         public Guid? OrganizationId { get; set; }
         public Organization? Organization { get; set; }

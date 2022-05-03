@@ -17,11 +17,21 @@ using Domain.Models;
 using Infrastructure.Data.Context;
 using Infrastructure.Data.Repositories.Helpers;
 using RestSharp;
+using System.Text.RegularExpressions;
 
 namespace Infrastructure.Data.Repositories
 {
     public class UserRepository : Repository<User>, IUserRepository
     {
+        public class Auth0MgtToken
+        {
+
+            public string grant_type { get; set; }
+            public string client_id { get; set; }
+            public string client_secret { get; set; }
+            public string audience { get; set; }
+        }
+
         public class Token
         {
             public string access_token { get; set; }
@@ -30,6 +40,8 @@ namespace Infrastructure.Data.Repositories
         private readonly IConfiguration _configuration;
         private readonly ILogger<UserRepository> _logger;
         private readonly string _audience;
+        private readonly string _api_identifier;
+        private string _access_token;
 
         public UserRepository(RaceBackendDbContext dbContext, IConfiguration configuration, IMapper mapper, ILogger<UserRepository> logger)
             : base(dbContext, mapper, logger)
@@ -37,43 +49,58 @@ namespace Infrastructure.Data.Repositories
             _configuration = configuration;
             _logger = logger;
             _audience = _configuration["Auth0_mgt:audience"];
+            _api_identifier = _configuration["Auth0_mgt:api_identifier"];
+            _access_token = null;
         }
 
         private async Task<Token> GetAccessToken()
         {
-            var url = _configuration["Auth0_mgt:url"];
             var clientId = _configuration["Auth0_mgt:clientId"];
             var clientSecret = _configuration["Auth0_mgt:clientSecret"];
             var audience = _configuration["Auth0_mgt:audience"];
-            var client = new RestClient($"{url}");
-            var request = new RestRequest
+            var endpoint = _configuration["Auth0_mgt:endpoint"];
+            var client = new RestClient(endpoint);
+            var request = new RestRequest(Method.POST);
+
+            var data = new Auth0MgtToken()
             {
-                Method = Method.Post
+                grant_type = "client_credentials",
+                client_id = clientId,
+                client_secret = clientSecret,
+                audience = audience
             };
-            request.AddHeader("content-type", "application/x-www-form-urlencoded");
-            request.AddParameter($"application/x-www-form-urlencoded", $"grant_type=client_credentials&client_id={clientId}&client_secret={clientSecret}&audience={audience}", ParameterType.RequestBody);
+            var json = JsonConvert.SerializeObject(data, Formatting.None, new JsonSerializerSettings
+            {
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                NullValueHandling = NullValueHandling.Ignore,       // Exclude properties set to null from the payload
+                ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = new SnakeCaseNamingStrategy()
+                }
+            });
+            request.AddJsonBody(json);
+            request.AddHeader("content-type", "application/json");
+
+
             var response = await client.ExecuteAsync(request);
-            
+            if (!response.IsSuccessful)
+                throw new UsersException(response.Content ?? "Unspecified error");
             var result = JsonConvert.DeserializeObject<Token>(response.Content);
+            _access_token = result.access_token;
             return result;
         }
 
-
         public override async Task<IEnumerable<User>> Find(ISpecification<User> specification)
         {
-            //RestRequest request;
-            //IRestResponse response;
             var accessToken = await GetAccessToken();
 
             var mgtClient = new RestClient($"{_audience}users");
-            var request = new RestRequest
-            {
-                Method = Method.Get
-            };
+            var request = new RestRequest(Method.GET);
             request.AddHeader("authorization", $"Bearer {accessToken.access_token}");
+
             var response = await mgtClient.ExecuteAsync(request);
             if (!response.IsSuccessful)
-                throw new UsersException(response.Content);
+                throw new UsersException(response.Content ?? "Unspecified error");
 
             var users = JsonConvert.DeserializeObject<List<User>>(response.Content,
                 new JsonSerializerSettings()
@@ -92,12 +119,14 @@ namespace Infrastructure.Data.Repositories
                         if (Guid.TryParse(user.AppMetadata.OrganizationId, out Guid oid))
                             user.OrganizationId = oid;
                 }
+                if (string.IsNullOrEmpty(user.UserId))
+                    user.UserId = user.Identities[0].UserId;
                 var usr = await AddUserToDb(user);
                 user.Id = usr?.Id;
                 user.TenantId = usr?.TenantId;
                 user.OrganizationId = usr?.OrganizationId;
                 user.PhoneNumber = usr?.PhoneNumber;
-            }   
+            }
 
             var query = users.AsQueryable();
             var result = SpecificationEvaluator<User>.GetQuery(query, specification, true);
@@ -120,18 +149,12 @@ namespace Infrastructure.Data.Repositories
             //    id = usr.UserId;
 
             var accessToken = await GetAccessToken();
-            RestRequest request;
-            RestResponse response;
             var mgtClient = new RestClient(endpoint);
-            request = new RestRequest
-            {
-                Method = Method.Get
-            };
+            var request = new RestRequest(Method.GET);
             request.AddHeader("authorization", $"Bearer {accessToken.access_token}");
-            response = await mgtClient.ExecuteAsync(request);
+            var response = await mgtClient.ExecuteAsync(request);
             if (!response.IsSuccessful)
-                if (response.Content != null)
-                    throw new UsersException(response.Content);
+                throw new UsersException(response.Content ?? "Unspecified error");
 
             User user;
             if (findByEmail)
@@ -144,10 +167,11 @@ namespace Infrastructure.Data.Repositories
             else
                 user = JsonConvert.DeserializeObject<User>(response.Content);
 
-            var usr = await AddUserToDb(user);
+            var usr = await GetUserFromDb(user.UserId);
             user.Id = usr?.Id;
             user.PhoneNumber = usr?.PhoneNumber;
-            user.Organization = usr?.Organization;
+            user.OrganizationId = usr?.OrganizationId;
+            user.TenantId = usr?.TenantId;
             return user;
         }
 
@@ -161,11 +185,20 @@ namespace Infrastructure.Data.Repositories
             if (organizationId == null && Guid.TryParse(user.AppMetadata?.OrganizationId, out Guid oid))
                 organizationId = oid;
 
+            //Set defualt values
+            user.Connection = "Username-Password-Authentication";
+            if (user.Name == null)
+                user.Name = GetFullNameFromEmail(user.Email);
+            if (user.Nickname == null)
+                user.Nickname = GetFirstName(user.Name);
+            user.Password = user.Nickname + "|1234";
+
             var appMetadata = new AppMetadata()
             {
-                TenantId = tenantId?.ToString(),
-                OrganizationId = organizationId?.ToString()
+                TenantId = tenantId?.ToString().ToLower(),
+                OrganizationId = organizationId?.ToString().ToLower(),
             };
+            user.AppMetadata = appMetadata;
             
             var entity = new User()
             {
@@ -174,8 +207,10 @@ namespace Infrastructure.Data.Repositories
                 Nickname = user.Nickname,
                 UserId = user.UserId,
                 Email = user.Email,
-                TenantId =tenantId,
-                AppMetadata = appMetadata
+                PhoneNumber = user.PhoneNumber,
+                TenantId = tenantId,
+                OrganizationId = organizationId,
+                //AppMetadata = appMetadata
             };
 
             // These properties will cause a Payload error if set
@@ -184,15 +219,12 @@ namespace Infrastructure.Data.Repositories
             user.UserId = null;
             user.PhoneNumber = null;
             user.EmailVerified = null;
+            user.OrganizationId = null;
+            user.TenantId = null;
 
             var accessToken = await GetAccessToken();
-            RestRequest request;
-            RestResponse response;
             var mgtClient = new RestClient($"{_audience}users");
-            request = new RestRequest
-            {
-                Method = Method.Post
-            };
+            var request = new RestRequest(Method.POST);
 
             var json = JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings
             {
@@ -204,25 +236,31 @@ namespace Infrastructure.Data.Repositories
                 }
             });
             request.AddJsonBody(json);
-
             request.AddHeader("authorization", $"Bearer {accessToken.access_token}");
-            response = await mgtClient.ExecuteAsync(request);
+
+            var response = await mgtClient.ExecuteAsync(request);
             if (!response.IsSuccessful)
-                if (response.Content != null)
-                    throw new UsersException(response.Content);
+                throw new UsersException(response.Content ?? "Unspecified error");
 
             var entry = JsonConvert.DeserializeObject<User>(response.Content);
 
-            // Now add the local User data
-            await PropertyChecks.CheckPrincipleAndDependant(_dbContext, entity, entity.Organization);
-            entity.UserId = entry?.UserId;
-            entity.TenantId = Guid.Parse(entry.AppMetadata.TenantId);
-            entity = await base.Add(entity);
-            
-            entry.Id = entity.Id;
-            entry.Organization = entity.Organization;
+            // Set dafault user role
+            string[] roles = { _configuration["Auth0_mgt:defaultUserRole"] };
+            appMetadata = new AppMetadata()
+            {
+                Roles = roles
+            };
+            await SetUserRoles(entry.UserId, appMetadata);
 
-            //UpdateItxEntity(entity);
+            // Now add the local User data
+            entity.UserId = entry?.UserId;
+            entity = await AddUserToDb(entity);
+
+            entry.Id = entity.Id;
+            entry.OrganizationId = entity.OrganizationId;
+            entry.TenantId = entity.TenantId;
+            entry.PhoneNumber = entry.PhoneNumber;
+
             return entry;
         }
 
@@ -239,23 +277,24 @@ namespace Infrastructure.Data.Repositories
             if (organizationId == null && Guid.TryParse(user.AppMetadata?.OrganizationId, out Guid oid))
                 organizationId = oid;
 
-            // Make a user object in our database - not all properties are mapped
             var appMetadata = new AppMetadata()
             {
                 TenantId = tenantId?.ToString(),
                 OrganizationId = organizationId?.ToString()
             };
+            user.AppMetadata = appMetadata;
+
             var entity = new User()
             {
                 Id = usr != null ? usr.Id : user.Id,
                 Name = user.Name,
                 Nickname = user.Nickname,
-                UserId = id,
+                UserId = user.UserId,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 TenantId = tenantId,
                 OrganizationId = organizationId,
-                AppMetadata = appMetadata
+                //AppMetadata = appMetadata
             };
             
             // These properties will cause a Payload error if set
@@ -265,15 +304,11 @@ namespace Infrastructure.Data.Repositories
             user.PhoneNumber = null;
             user.EmailVerified = null;
             user.OrganizationId = null;
+            user.TenantId = null;
             
             var accessToken = await GetAccessToken();
-            RestRequest request;
-            RestResponse response;
             var mgtClient = new RestClient($"{_audience}users/{id}");
-            request = new RestRequest
-            {
-                Method = Method.Patch
-            };
+            var request = new RestRequest(Method.PATCH);
             var json = JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings
             {
                 DateTimeZoneHandling = DateTimeZoneHandling.Utc,
@@ -285,14 +320,13 @@ namespace Infrastructure.Data.Repositories
             });
             request.AddJsonBody(json);
             request.AddHeader("authorization", $"Bearer {accessToken.access_token}");
-            response = await mgtClient.ExecuteAsync(request);
+
+            var response = await mgtClient.ExecuteAsync(request);
             if (!response.IsSuccessful)
-                if (response.Content != null)
-                    throw new UsersException(response.Content);
+                throw new UsersException(response.Content ?? "Unspecified error");
 
             // Now update the local User data
-            _dbContext.Update(entity);
-            await _dbContext.SaveChangesAsync();
+            await AddUserToDb(entity);
 
             return response.IsSuccessful;
         }
@@ -304,13 +338,9 @@ namespace Infrastructure.Data.Repositories
                 id = usr.UserId;
 
             var accessToken = await GetAccessToken();
-            RestRequest request;
-            RestResponse response;
             var mgtClient = new RestClient($"{_audience}users/{id}");
-            request = new RestRequest
-            {
-                Method = Method.Delete
-            };
+            var request = new RestRequest(Method.DELETE);
+
             var json = JsonConvert.SerializeObject(Formatting.None, new JsonSerializerSettings
             {
                 DateTimeZoneHandling = DateTimeZoneHandling.Utc,
@@ -322,10 +352,10 @@ namespace Infrastructure.Data.Repositories
             });
             request.AddJsonBody(json);
             request.AddHeader("authorization", $"Bearer {accessToken.access_token}");
-            response = await mgtClient.ExecuteAsync(request);
+
+            var response = await mgtClient.ExecuteAsync(request);
             if (!response.IsSuccessful)
-                if (response.Content != null)
-                    throw new UsersException(response.Content);
+                throw new UsersException(response.Content ?? "Unspecified error");
 
             // Remove user object from our database
             if (usr != null)
@@ -337,7 +367,43 @@ namespace Infrastructure.Data.Repositories
 
         /// 
         /// Misc
-        /// 
+        ///
+
+        public string GetFullNameFromEmail(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return null;
+
+            string n = name.Split('@').First();
+
+            //string[] substrings = Regex.Matches(n, "\\w+('(s|d|t|ve|m))?")
+            //    .Cast<Match>().Select(x => x.Value).ToArray();
+            var substrings = Regex.Split(n, @"[^a-zA-Z0-9']").Where(s => s != String.Empty).ToArray();
+
+            string s = "";
+            foreach (string str in substrings)
+            {
+                if (!string.IsNullOrEmpty(s))
+                    s += " ";
+                s += str;
+            }
+            return s;
+        }
+
+        public string GetFirstName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return null;
+
+            string n = name.Split('@').First();
+
+            //string[] substrings = Regex.Matches(n, "\\w+('(s|d|t|ve|m))?")
+            //    .Cast<Match>().Select(x => x.Value).ToArray();
+            var substrings = Regex.Split(n, @"[^a-zA-Z0-9']").Where(s => s != String.Empty).ToArray();
+            return substrings[0];
+        }
+
+
 
         public async Task<User> GetUserFromDb(string id)
         {
@@ -369,65 +435,10 @@ namespace Infrastructure.Data.Repositories
         {
             try
             {
-                //var configuration = new MapperConfiguration(cfg =>
-                //    cfg.CreateMap<User, User>()
-                //    .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null)));
-                //var mapper = configuration.CreateMapper();
-
-                //var entity = await _dbContext.Set<User>()
-                //    .Include(i => i.Organization)
-                //    .AsNoTracking()
-                //    .FirstOrDefaultAsync(u => u.UserId == user.UserId);
-
-                //Guid? tenantId = user.TenantId;
-                //Guid? organizationId = user.OrganizationId;
-                //if (tenantId == null && Guid.TryParse(user.AppMetadata?.TenantId, out Guid tid))
-                //    tenantId = tid;
-                //if (tenantId == null && entity != null)
-                //    tenantId = entity.TenantId;
-                //if (organizationId == null && Guid.TryParse(user.AppMetadata?.OrganizationId, out Guid oid))
-                //    organizationId = oid;
-                //if (organizationId == null && entity != null)
-                //    organizationId = entity.OrganizationId;
-
-                //var usr = new User()
-                //{
-                //    Id = entity?.Id,
-                //    Name = user.Name,
-                //    Nickname = user.Nickname,
-                //    Username = user.Username,
-                //    UserId = user.UserId,
-                //    Email = user.Email,
-                //    PhoneNumber = user.PhoneNumber,
-                //    TenantId = tenantId,
-                //    OrganizationId = organizationId
-                //};
-
-                //if (entity == null)
-                //{
-                //    //entity = await base.Add(usr);
-                //    await PropertyChecks.CheckProperties(_dbContext, usr, null);
-                //    var result = await _dbContext.AddAsync(usr);
-                //    await _dbContext.SaveChangesAsync();
-                //    entity = result.Entity;
-                //}
-                //else
-                //{
-                //    if (usr.Nickname == "en")
-                //        Console.WriteLine("debug");
-                //    await PropertyChecks.CheckProperties(_dbContext, usr, entity);
-                //    mapper.Map(usr, entity);
-                //    //_dbContext.Update(entity);
-                //    _dbContext.Entry(entity).CurrentValues.SetValues(usr);
-                //    await _dbContext.SaveChangesAsync();
-                //}
-
-                //return entity;
-
-                string id = user.Id != null ? user.Id.ToString() : user.UserId.ToString();
+                string id = user.Id != null ? user.Id.ToString() : user.UserId;
                 var usr = await GetUserFromDb(id);
-                if (usr != null)
-                    id = usr.UserId;
+                //if (usr != null)
+                //    id = usr.UserId;
 
                 Guid? tenantId = usr != null ? usr.TenantId : user.TenantId;
                 Guid? organizationId = usr != null ? usr.OrganizationId : user.OrganizationId;
@@ -437,34 +448,24 @@ namespace Infrastructure.Data.Repositories
                     organizationId = oid;
 
                 // Make a user object in our database - not all properties are mapped
-                var appMetadata = new AppMetadata()
-                {
-                    TenantId = tenantId?.ToString(),
-                    OrganizationId = organizationId?.ToString()
-                };
                 var entity = new User()
                 {
                     Id = usr != null ? usr.Id : user.Id,
                     Name = user.Name,
                     Nickname = user.Nickname,
-                    UserId = id,
+                    UserId = user.UserId,
                     Email = user.Email,
                     PhoneNumber = usr != null ? usr.PhoneNumber : user.PhoneNumber,
                     TenantId = tenantId,
                     OrganizationId = organizationId,
-                    AppMetadata = appMetadata
                 };
                 await PropertyChecks.CheckPrincipleAndDependant(_dbContext, entity, entity.Organization);
 
                 if (usr == null)
-                {
                     entity = await base.Add(entity);
-                }
-                //else
-                //{
-                //    _dbContext.Entry(entity).CurrentValues.SetValues(usr);
-                //    await _dbContext.SaveChangesAsync();
-                //}
+                else
+                    _dbContext.Entry(entity).CurrentValues.SetValues(usr);
+                await _dbContext.SaveChangesAsync();
                 return entity;
             }
             catch (Exception ex)
@@ -482,52 +483,45 @@ namespace Infrastructure.Data.Repositories
         public async Task<IEnumerable<Role>> GetAllRoles()
         {
             var accessToken = await GetAccessToken();
-            RestRequest request;
-            RestResponse response;
             var mgtClient = new RestClient($"{_audience}roles");
-            request = new RestRequest
-            {
-                Method = Method.Get
-            };
+            var request = new RestRequest(Method.GET);
             request.AddHeader("authorization", $"Bearer {accessToken.access_token}");
-            response = await mgtClient.ExecuteAsync(request);
+
+            var response = await mgtClient.ExecuteAsync(request);
             if (!response.IsSuccessful)
-                if (response.Content != null)
-                    throw new UsersException(response.Content);
+                throw new UsersException(response.Content ?? "Unspecified error");
 
             var result = JsonConvert.DeserializeObject<List<Role>>(response.Content); ;
             return result;
         }
+
         public async Task<IEnumerable<Role>> GetUserRoles(string id)
         {
             var accessToken = await GetAccessToken();
-            RestRequest request;
-            RestResponse response;
             var mgtClient = new RestClient($"{_audience}users/{id}/roles");
-            request = new RestRequest
-            {
-                Method = Method.Get
-            };
+            var request = new RestRequest(Method.GET);
             request.AddHeader("authorization", $"Bearer {accessToken.access_token}");
-            response = await mgtClient.ExecuteAsync(request);
+
+            var response = await mgtClient.ExecuteAsync(request);
             if (!response.IsSuccessful)
-                if (response.Content != null)
-                    throw new UsersException(response.Content);
+                throw new UsersException(response.Content ?? "Unspecified error");
 
             var result = JsonConvert.DeserializeObject<List<Role>>(response.Content);
             return result;
         }
+
         public async Task<bool> SetUserRoles(string id, AppMetadata role)
         {
-            var accessToken = await GetAccessToken();
-            RestRequest request;
-            RestResponse response;
-            var mgtClient = new RestClient($"{_audience}users/{id}/roles");
-            request = new RestRequest
+            var accessToken = _access_token;
+            if (accessToken == null)
             {
-                Method = Method.Post
-            };
-            request.AddHeader("authorization", $"Bearer {accessToken.access_token}");
+                var token = await GetAccessToken();
+                accessToken = token.access_token;
+            }
+            var mgtClient = new RestClient($"{_audience}users/{id}/roles");
+            var request = new RestRequest(Method.POST);
+            request.AddHeader("authorization", $"Bearer {accessToken}");
+
             var json = JsonConvert.SerializeObject(role, Formatting.None, new JsonSerializerSettings
             {
                 DateTimeZoneHandling = DateTimeZoneHandling.Utc,
@@ -538,10 +532,10 @@ namespace Infrastructure.Data.Repositories
                 }
             });
             request.AddJsonBody(json);
-            response = await mgtClient.ExecuteAsync(request);
+
+            var response = await mgtClient.ExecuteAsync(request);
             if (!response.IsSuccessful)
-                if (response.Content != null)
-                    throw new UsersException(response.Content);
+                throw new UsersException(response.Content ?? "Unspecified error");
 
             return response.StatusCode == HttpStatusCode.NoContent;
         }
@@ -549,13 +543,8 @@ namespace Infrastructure.Data.Repositories
         public async Task<bool> DeleteUserRoles(string id, AppMetadata role)
         {
             var accessToken = await GetAccessToken();
-            RestRequest request;
-            RestResponse response;
             var mgtClient = new RestClient($"{_audience}users/{id}/roles");
-            request = new RestRequest
-            {
-                Method = Method.Delete
-            };
+            var request = new RestRequest(Method.DELETE);
             request.AddHeader("authorization", $"Bearer {accessToken.access_token}");
             var json = JsonConvert.SerializeObject(role, Formatting.None, new JsonSerializerSettings
             {
@@ -567,10 +556,10 @@ namespace Infrastructure.Data.Repositories
                 }
             });
             request.AddJsonBody(json);
-            response = await mgtClient.ExecuteAsync(request);
+
+            var response = await mgtClient.ExecuteAsync(request);
             if (!response.IsSuccessful)
-                if (response.Content != null)
-                    throw new UsersException(response.Content);
+                throw new UsersException(response.Content ?? "Unspecified error");
 
             var result = JsonConvert.DeserializeObject<Role>(response.Content);
             return response.StatusCode == HttpStatusCode.NoContent;
@@ -579,19 +568,14 @@ namespace Infrastructure.Data.Repositories
         public async Task<string> UnblockUserById(string id)
         {
             var accessToken = await GetAccessToken();
-            RestRequest request;
-            RestResponse response;
             //var mgtClient = new RestClient($"{_audience}user-blocks?identifier={id}");
             var mgtClient = new RestClient($"{_audience}user-blocks/{id}");
-            request = new RestRequest
-            {
-                Method = Method.Delete
-            };
+            var request = new RestRequest(Method.DELETE);
             request.AddHeader("authorization", $"Bearer {accessToken.access_token}");
-            response = await mgtClient.ExecuteAsync(request);
+
+            var response = await mgtClient.ExecuteAsync(request);
             if (!response.IsSuccessful)
-                if (response.Content != null)
-                    throw new UsersException(response.Content);
+                throw new UsersException(response.Content ?? "Unspecified error");
 
             return response.Content;
         }

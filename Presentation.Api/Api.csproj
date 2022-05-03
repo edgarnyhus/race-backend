@@ -23,7 +23,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.2" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.1" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql.NetTopologySuite" Version="6.0.1" />
-    <PackageReference Include="RestSharp" Version="107.3.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="2.2.0" />
     <PackageReference Include="Serilog.Enrichers.Process" Version="2.0.2" />
@@ -33,6 +32,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.0" />
     <PackageReference Include="System.Collections" Version="4.3.0" />
     <PackageReference Include="TimeZoneConverter" Version="5.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -43,8 +43,13 @@
 
   <ItemGroup>
     <None Remove="Microsoft.AspNet.WebApi.SelfHost" />
+    <None Remove="Changelogs\" />
+    <None Remove="Microsoft.AspNetCore.HttpOverrides" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\.editorconfig" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Changelogs\" />
   </ItemGroup>
 </Project>

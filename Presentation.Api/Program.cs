@@ -32,7 +32,7 @@ namespace Api
                 var hostBuilder = CreateHostBuilder(args).Build();
 
                 Log.Information("Running in environment " + environmentName);
-                Log.Information("Using Db connection " + Startup.Configuration.GetConnectionString("RaceBackendDbConnection"));
+                Log.Information("Using Db connection " + configuration.GetConnectionString("RaceBackendDbConnection"));
 
                 hostBuilder.Run();
             }
@@ -56,11 +56,3 @@ namespace Api
                 });
     }
 }
-
-//{
-//  grant_type: 'client_credentials',
-//  client_id: 'NON-INTERACTIVE-CLIENT-ID',
-//  client_secret: 'NON-INTERACTIVE-CLIENT-SECRET',
-//  audience: 'https://yourdomain.auth0.com/api/v2/"    }
-//}
-
