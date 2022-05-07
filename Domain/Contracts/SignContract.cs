@@ -8,12 +8,13 @@ namespace Domain.Contracts
     public class SignContract
     {
         [JsonProperty("tenant_id")]
-        public string TenantId { get; set; }
-        public string Name { get; set; }
+        public string? TenantId { get; set; }
+        public string? Id { get; set; }
+        public string? Name { get; set; }
         [JsonProperty("sequence_number")]
         public int? SequenceNumber { get; set; } = 1;
-        [JsonProperty("sign_type")]
-        public SignType SignType { get; set; }
+        [JsonProperty("signtype_id")]
+        public string? SignTypeId { get; set; }
         [JsonProperty("qr_code")]
         public string? QrCode { get; set; }
         public SignState? State { get; set; } = SignState.Inactive;
@@ -21,7 +22,7 @@ namespace Domain.Contracts
         public string? Notes { get; set; }
         [JsonProperty("race_id")]
         public string? RaceId { get; set; }
-        [JsonProperty("sign_group_id")]
+        [JsonProperty("signgroup_id")]
         public string? SignGroupId { get; set; }
         [JsonProperty("organization_id")]
         public string? OrganizationId { get; set; }

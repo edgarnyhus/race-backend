@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,7 +39,7 @@ namespace Api.Controllers
         [Authorize("read:signgroups")]
         public async Task<IActionResult> GetSignGroups([FromQuery] QueryParameters queryParameters)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
+            throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
             var result = await _service.GetSignGroups(queryParameters);
@@ -61,7 +61,7 @@ namespace Api.Controllers
         [Authorize("read:signgroups")]
         public async Task<IActionResult> GetSignGroupById(string id)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
+            throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
             
             var result = await _service.GetSignGroupById(id);
@@ -73,7 +73,7 @@ namespace Api.Controllers
         [Authorize("create:signgroups")]
         public async Task<IActionResult> CreateSignGroup([FromBody] SignGroupContract contract)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
+            throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
@@ -98,7 +98,7 @@ namespace Api.Controllers
         [Authorize("update:signgroups")]
         public async Task<IActionResult> UpdateSign(string id, [FromBody] SignGroupContract contract)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
+            throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
@@ -120,7 +120,7 @@ namespace Api.Controllers
         [Authorize("delete:signgroups")]
         public async Task<IActionResult> DeleteSignGroup(string id)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
+            throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 var result = await _service.DeleteSignGroup(id);

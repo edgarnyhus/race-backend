@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using MediatR;
 using Domain.Models;
@@ -80,9 +80,11 @@ namespace Domain.Multitenant
             if (string.IsNullOrEmpty(roles))
             {
                 var identifier = await _tenantResolutionStrategy.GetTenantIdentifierAsync();
-                if (Constants.TenantGlobalAdminDomain.Equals(identifier, System.StringComparison.OrdinalIgnoreCase))
-                    return true;
-                return false;
+                //if (Constants.TenantGlobalAdminDomain.Equals(identifier, System.StringComparison.OrdinalIgnoreCase))
+                //    return true;
+                var identifierList = identifier.Split(',');
+                var res = identifierList.SingleOrDefault(c => c == Constants.TenantGlobalAdminDomain);
+                return (!string.IsNullOrEmpty(res));
             }
             var roleList = roles.Split(',');
             var result = roleList.SingleOrDefault(c => c == Constants.TenantGlobalAdminRole);

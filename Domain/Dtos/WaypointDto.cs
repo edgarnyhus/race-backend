@@ -6,10 +6,10 @@ namespace Domain.Dtos
 {
     public class WaypointDto : EntityBaseDto
     {
-        public string? alias { get; set; }
-        public string? notes { get; set; }
-        public LocationDto? location { get; set; }
+        public string? Alias { get; set; }
+        public string? Notes { get; set; }
+        public LocationDto? Location { get; set; }
         [JsonPropertyName("race_id")]
-        public string? raceId { get; set; }
+        public string? RaceId { get; set; }
     }
 }

@@ -15,7 +15,7 @@ public class SignGroupRepository : Repository<SignGroup>, ISignGroupRepository
     private readonly IMapper _mapper;
     private readonly ILogger<SignGroupRepository> _logger;
 
-    public SignGroupRepository(RaceBackendDbContext dbContext, IMapper mapper, ILogger<SignGroupRepository> logger) :
+    public SignGroupRepository(LocusBaseDbContext dbContext, IMapper mapper, ILogger<SignGroupRepository> logger) :
         base(dbContext, mapper, logger)
     {
         _mapper = mapper;

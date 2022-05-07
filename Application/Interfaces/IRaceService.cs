@@ -15,5 +15,10 @@ namespace Application.Interfaces
         Task<RaceDto> CreateRace(RaceContract contract);
         Task<bool> UpdateRace(string id, RaceContract contract);
         Task<bool> DeleteRace(string id);
+
+        Task<IEnumerable<SignDto>> GetSignsOfRace(QueryParameters queryParameters);
+        Task<bool> AddSignToRace(SignContract contract);
+        Task<bool> UpdateSign(string id, SignContract contract);
+        Task<bool> RemoveSignFromRace(string id);
     }
 }

@@ -20,7 +20,7 @@ namespace Infrastructure.Data.Repositories
         private readonly ILogger<TenantRepository> _logger;
         private readonly IServiceScopeFactory _scopeFactory;
 
-        public TenantRepository(RaceBackendDbContext dbContext, IServiceScopeFactory scopeFactory, IMapper mapper,
+        public TenantRepository(LocusBaseDbContext dbContext, IServiceScopeFactory scopeFactory, IMapper mapper,
             ILogger<TenantRepository> logger) : base(dbContext, mapper, logger)
         {
             _scopeFactory = scopeFactory;

@@ -14,7 +14,7 @@ namespace Infrastructure.Data.Repositories
 {
     public class DriverRepository : Repository<Driver>, IDriverRepository
     {
-        public DriverRepository(RaceBackendDbContext dbContext, IMapper mapper, ILogger<Repository<Driver>> logger) : base(dbContext, mapper, logger)
+        public DriverRepository(LocusBaseDbContext dbContext, IMapper mapper, ILogger<Repository<Driver>> logger) : base(dbContext, mapper, logger)
         {
         }
 

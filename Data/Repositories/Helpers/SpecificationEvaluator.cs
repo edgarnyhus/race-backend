@@ -9,9 +9,9 @@ namespace Infrastructure.Data.Repositories.Helpers
 {
     public class SpecificationEvaluator<T> where T : EntityBase
     {
-        protected RaceBackendDbContext _dbContext { get; set; }
+        protected LocusBaseDbContext _dbContext { get; set; }
 
-        public SpecificationEvaluator(RaceBackendDbContext dbContext)
+        public SpecificationEvaluator(LocusBaseDbContext dbContext)
         {
             _dbContext = dbContext;
         }

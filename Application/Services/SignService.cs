@@ -13,10 +13,9 @@ using Domain.Models;
 using Domain.Multitenant;
 using Domain.Specifications;
 using Microsoft.Extensions.Configuration;
-using IronBarCode;
-using Net.Codecrete;
 using shortid;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace Application.Services
 {
@@ -46,24 +45,17 @@ namespace Application.Services
             await tenantValidation.Validate(queryParameters);
 
             var result = await _repository.Find(new GetSignsSpecification(queryParameters));
-            _logger.LogTrace($"GetEquipment: Making query {result}");
-
             var response = _mapper.Map<IEnumerable<Sign>, IEnumerable<SignDto>>(result);
+
             return response;
         }
 
         public async Task<SignDto> GetSignById(string id)
         {
-            Guid.TryParse(id, out Guid guid);
-            var result = await _repository.FindById(guid);
-
+            var result = await _repository.FindById(id);
             var response = _mapper.Map<Sign, SignDto>(result);
-            return response;
-        }
 
-        public Task<string> GetSignWithQrCode(string qrCode)
-        {
-            throw new NotImplementedException();
+            return response;
         }
 
         public async Task<SignDto> CreateSign(SignContract contract)
@@ -73,36 +65,29 @@ namespace Application.Services
             //    throw new UnauthorizedAccessException(
             //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
-            QueryParameters parameters = new QueryParameters();
-            var tenantValidation = new TenantValidation(_tenantAccessService, _multitenancy);
-            await tenantValidation.Validate(parameters);
+            if (string.IsNullOrEmpty(contract.Name))
+                throw new ArgumentNullException("Invalid request body. The 'name' property must be specified.");
+            if (string.IsNullOrEmpty(contract.SignTypeId))
+                throw new ArgumentNullException("Invalid request body. The 'signtype_id' property must be specified.");
 
-            var entity = _mapper.Map<SignContract, Sign>(contract);
-
-            if (entity.SignType == null || entity.SignType.Id == null)
-                throw new ArgumentException("Property 'sign_type.id' must be set");
-                
-            if (entity.TenantId == null)
-            {
-                if (Guid.TryParse(parameters.tenant_id, out Guid tid))
-                    entity.TenantId = tid;
-            }
-            if (entity.OrganizationId == null)
-            {
-                if (Guid.TryParse(parameters.organization_id, out Guid oid))
-                    entity.TenantId = oid;
-            }
-
-            entity.Name = ComposeName(entity.Name, (int)entity.SequenceNumber);
+            contract.SequenceNumber = 1;
+            var entity = await UpdateProperties(contract);
 
             // If 'name' exists, discard the sign and increase the sequence number
-            var existingEntity = await _repository.FindById(entity.Name);
+            var spec = new GetSignsSpecification(new QueryParameters()
+            {
+                name = entity.Name,
+                organization_id = entity.OrganizationId.ToString()
+            });
+            IEnumerable<Sign> res = await _repository.Find(spec);
+
+            Sign existingEntity = res.FirstOrDefault();
             if (existingEntity != null)
             {
                 existingEntity.State = SignState.Discarded;
                 await _repository.Update((Guid)existingEntity.Id, existingEntity);
 
-                entity.SequenceNumber++;
+                entity.SequenceNumber = existingEntity.SequenceNumber + 1;
                 entity.Name = ComposeName(entity.Name, (int)entity.SequenceNumber);
             }
 
@@ -119,9 +104,10 @@ namespace Application.Services
                 entity.QrCode = ShortId.Generate(options).ToUpper();
             }
             entity.State = SignState.Inactive;
-            entity = await _repository.Add(entity);
 
+            entity = await _repository.Add(entity);
             var result = _mapper.Map<Sign, SignDto>(entity);
+
             return result;
         }
 
@@ -132,9 +118,11 @@ namespace Application.Services
             //    throw new UnauthorizedAccessException(
             //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
-            var entity = _mapper.Map<SignContract, Sign>(contract);
+            var entity = await UpdateProperties(contract);
+
             Guid.TryParse(id, out Guid guid);
             var result = await _repository.Update(guid, entity);
+
             return result;
         }
 
@@ -145,8 +133,7 @@ namespace Application.Services
             //    throw new UnauthorizedAccessException(
             //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
-            Guid.TryParse(id, out Guid guid);
-            var result = await _repository.Remove(guid);
+            var result = await _repository.Remove(id);
 
             return result;
         }
@@ -170,19 +157,42 @@ namespace Application.Services
 
         private string ComposeName(string str, int sequenceNumber)
         {
-            string name = "";
+            string name = str;
 
-            var re = new Regex("^([a-z ]+)(.+)", RegexOptions.IgnoreCase);
+            //var re = new Regex("^([a-z ]+)(.+)", RegexOptions.IgnoreCase);
+            var re = new Regex(@"(.*?)([\$\+\-].*)", RegexOptions.IgnoreCase);
             var m = re.Match(str);
             if (m.Success)
             {
                 name = m.Groups[1].Value;
             }
-            else
-                name = str;
-            var s = string.Format("{0}-{1:000}", name, sequenceNumber);
+            //var s = string.Format("{0}-{1:000}", name, sequenceNumber);
             name += "-" + sequenceNumber.ToString("D3");
             return name;
+        }
+
+        private async Task<Sign> UpdateProperties(SignContract contract)
+        {
+            QueryParameters parameters = new QueryParameters();
+            var tenantValidation = new TenantValidation(_tenantAccessService, _multitenancy);
+            await tenantValidation.Validate(parameters);
+
+            var entity = _mapper.Map<SignContract, Sign>(contract);
+
+            if (entity.TenantId == null)
+            {
+                if (Guid.TryParse(parameters.tenant_id, out Guid tid))
+                    entity.TenantId = tid;
+            }
+            if (entity.OrganizationId == null)
+            {
+                if (Guid.TryParse(parameters.organization_id, out Guid oid))
+                    entity.OrganizationId = oid;
+            }
+
+            entity.Name = ComposeName(entity.Name, (int)entity.SequenceNumber);
+
+            return entity;
         }
     }
 }

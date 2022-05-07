@@ -8,13 +8,13 @@ namespace Domain.Dtos
 {
     public class LocationDto
     {
-        public string? address { get; set; }
-        public double latitude { get; set; }
-        public double longitude { get; set; }
-        public DateTime? timestamp { get; set; }
+        public string? Address { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public DateTime? Timestamp { get; set; }
         [JsonPropertyName("waypoint_id")]
-        public string? waypointId { get; set; }
-        [JsonPropertyName("signpost_id")]
-        public string? signpostId { get; set; }
+        public string? WaypointId { get; set; }
+        [JsonPropertyName("sign_id")]
+        public string? SignId { get; set; }
     }
 }

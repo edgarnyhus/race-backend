@@ -43,7 +43,9 @@ namespace Application.Services
             var tenantValidation = new TenantValidation(_tenantAccessService, _multitenancy);
             await tenantValidation.Validate(queryParameters);
 
-            if (!(await _tenantAccessService.IsAdministrator()))
+            if (await _tenantAccessService.IsGlobalAdministrator())
+                queryParameters.tenant_id = null;
+            else  if (!(await _tenantAccessService.IsAdministrator()))
                 throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
 
             var result = await _repository.Find(new GetTenantsSpecification(queryParameters));

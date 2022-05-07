@@ -12,7 +12,9 @@ namespace Domain.Dtos
         public string? Name { get; set; }
         [JsonProperty("sequence_number")]
         public int? SequenceNumber { get; set; } = 1;
-        [JsonProperty("sign_type")]
+        [JsonProperty("signtype_id")]
+        public string SignTypeId { get; set; }
+        [JsonProperty("signtype")]
         public SignTypeDto? SignType { get; set; }
         [JsonProperty("qr_code")]
         public string? QrCode { get; set; }
@@ -23,7 +25,7 @@ namespace Domain.Dtos
         public string? LastScannedBy { get; set; }
         [JsonProperty("race_id")]
         public string? RaceId { get; set; }
-        [JsonProperty("sign_group_id")]
+        [JsonProperty("signgroup_id")]
         public string? SignGroupId { get; set; }
         [JsonProperty("organization_id")]
         public string? OrganizationId { get; set; }

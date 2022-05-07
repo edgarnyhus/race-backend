@@ -51,7 +51,7 @@ namespace Api
         // This method gets called by the runtime. Use this method to add services to RacePlanner.
         public void ConfigureServices(IServiceCollection services)
         {
-            var connectionString = Configuration.GetConnectionString("RaceBackendDbConnection");
+            var connectionString = Configuration.GetConnectionString("LocusBasedDbConnection");
             string cors = Configuration["Auth0:AllowWithOrigins"];
 
             // CORS config start
@@ -133,7 +133,7 @@ namespace Api
             bool.TryParse(Configuration["useMySql"], out bool useMySql);
             if (useMySql)
             {
-                services.AddDbContext<RaceBackendDbContext>(options =>
+                services.AddDbContext<LocusBaseDbContext>(options =>
                 {
                     options.UseMySql(
                         connectionString, ServerVersion.AutoDetect(connectionString),
@@ -144,7 +144,7 @@ namespace Api
             }
             else
             {
-                services.AddDbContext<RaceBackendDbContext>(options =>
+                services.AddDbContext<LocusBaseDbContext>(options =>
                 {
                     options.UseSqlServer(
                         connectionString,

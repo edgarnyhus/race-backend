@@ -17,7 +17,7 @@ namespace Domain.Specifications
         public double longitude { get; set; }
         public double latitude { get; set; }
         public double radius { get; set; }
-        public string? sign_type { get; set; }
+        public string? signtype { get; set; }
     }
 
     public class WithinEnvelope
@@ -26,7 +26,7 @@ namespace Domain.Specifications
         public double latitude1 { get; set; }
         public double longitude2 { get; set; }
         public double latitude2 { get; set; }
-        public string? sign_type { get; set; }
+        public string? signtype { get; set; }
     }
 
     public abstract class BaseSpecification<T> : ISpecification<T>

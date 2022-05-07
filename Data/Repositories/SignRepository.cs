@@ -23,7 +23,7 @@ namespace Infrastructure.Data.Repositories
         private readonly IMapper _mapper;
         private readonly ILogger<SignRepository> _logger;
 
-        public SignRepository(RaceBackendDbContext dbContext, IMapper mapper, ILogger<SignRepository> logger)
+        public SignRepository(LocusBaseDbContext dbContext, IMapper mapper, ILogger<SignRepository> logger)
             : base(dbContext, mapper, logger)
         {
             _mapper = mapper;
@@ -48,47 +48,49 @@ namespace Infrastructure.Data.Repositories
 
             Sign result = null;
             if (Guid.TryParse(id, out Guid gid))
-                result = await query.FirstOrDefaultAsync(x => x.Id == gid);
+                result = await query
+                    .Where(x => x.Id == gid)
+                    .FirstOrDefaultAsync();
             else
-                result = await query.FirstOrDefaultAsync(x => x.QrCode == id || x.Name == id);
+                result = await query
+                    .Where(x => x.QrCode == id)
+                    .FirstOrDefaultAsync();
 
             return result;
         }
 
         public override async Task<Sign> Add(Sign entity)
         {
-            //await PropertyChecks.CheckProperties(_dbContext, entity, null);
+            await PropertyChecks.CheckProperties(_dbContext, entity, null);
 
-            var signType = await _dbContext.Set<SignType>()
-                .Include(i => i.Signs)
-                .FirstOrDefaultAsync(x => x.Id == entity.SignType.Id);
+            //if (IsDevelopment)
+            //    foreach (var ee in _dbContext.ChangeTracker.Entries())
+            //        Console.WriteLine($"{ee.Metadata.Name}, {ee.State}");
 
-            if (signType == null)
-                throw new ArgumentException("Property 'sign_type.id' must be set to an existing sign_type");
-
-            entity.SignType = null;
             entity = await base.Add(entity);
-
-            if (signType.Signs == null)
-                signType.Signs = new Collection<Sign>();
-            signType.Signs.Add(entity);
-
-            await _dbContext.SaveChangesAsync();
             return entity;
         }
 
-        public override async Task<bool> Update(Guid id, Sign entity)
+        public async Task<bool> Update(string id, Sign entity)
         {
             var configuration = new MapperConfiguration(cfg =>
                 cfg.CreateMap<Sign, Sign>()
                     .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null)));
             var mapper = configuration.CreateMapper();
 
-            var existingEntity = await _dbContext.Set<Sign>()
-                .Where(e => id == e.Id)
+            var query = _dbContext.Set<Sign>()
                 .Include(u => u.SignType)
-                .Include(x => x.Location)
-                .FirstOrDefaultAsync();
+                .Include(x => x.Location);
+
+            Sign existingEntity = null;
+            if (Guid.TryParse(id, out Guid guid))
+                existingEntity = await query
+                    .Where(x => x.Id == guid)
+                    .FirstOrDefaultAsync();
+            else
+                existingEntity = await query
+                    .Where(x => x.QrCode == id || (x.Name == id && x.OrganizationId == entity.OrganizationId))
+                    .FirstOrDefaultAsync();
 
             if (existingEntity == null)
             {
@@ -98,31 +100,42 @@ namespace Infrastructure.Data.Repositories
                 return entity != null;
             }
 
+
             await PropertyChecks.CheckProperties(_dbContext, entity, existingEntity);
-
-            var signType = await _dbContext.Set<SignType>()
-                .Include(i => i.Signs)
-                .FirstOrDefaultAsync(x => x.Id == existingEntity.SignType.Id);
-
-            if (entity.SignType.Id != existingEntity.SignType.Id)
-                signType.Signs.Remove(existingEntity);
-
             mapper.Map(entity, existingEntity);
-            entity.SignType = null;
 
-            if (IsDevelopment)
-                foreach (var entry in _dbContext.ChangeTracker.Entries())
-                    Console.WriteLine($"{entry.Metadata.Name}, {entry.State}");
+            try
+            {
+                if (IsDevelopment)
+                    foreach (var entry in _dbContext.ChangeTracker.Entries())
+                        Console.WriteLine($"{entry.Metadata.Name}, {entry.State}");
 
-            //_dbContext.Set<Sign>().Update(entity);
-
-            if (signType.Signs == null)
-                signType.Signs = new Collection<Sign>();
-            signType.Signs.Add(entity);
-
-            await _dbContext.SaveChangesAsync();
-            return true;
+                await _dbContext.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                var error = ex.Message;
+                if (ex.InnerException != null)
+                    error = ex.InnerException.Message;
+                if (error.Contains("IX_Equipment_QrCode"))
+                    Console.WriteLine("IX_Equipment_QrCode");
+                else
+                    Console.WriteLine($"{error}");
+                throw;
+            }
         }
+
+        public async Task<bool> Remove(string id)
+        {
+            var entity = await FindById(id);
+            if (entity == null)
+                return false;
+            var result = _dbContext.Set<Sign>().Remove(entity);
+            await _dbContext.SaveChangesAsync();
+            return result != null;
+        }
+
 
         public List<KeyValuePair<int, string>> GetSignStates()
         {

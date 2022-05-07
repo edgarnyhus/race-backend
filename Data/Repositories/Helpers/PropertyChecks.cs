@@ -12,7 +12,7 @@ namespace Infrastructure.Data.Repositories.Helpers
 {
     public class PropertyChecks
     {
-        public static async Task<EntityBase> CheckProperties(RaceBackendDbContext context, EntityBase entity, EntityBase existingEntity)
+        public static async Task<EntityBase> CheckProperties(LocusBaseDbContext context, EntityBase entity, EntityBase existingEntity)
         {
             var props = entity.GetType().GetProperties();
             foreach (var prop in props)
@@ -20,11 +20,12 @@ namespace Infrastructure.Data.Repositories.Helpers
                 if (prop.Name == "Location" && existingEntity != null
                      && (entity.GetType() == typeof(Sign) || entity.GetType() == typeof(Waypoint)))
                 {
-                    var newLoc = prop.GetValue(entity);
-                    var currentLoc = prop.GetValue(existingEntity);
+                    var newLoc = (Location) prop.GetValue(entity);
+                    var currentLoc = (Location) prop.GetValue(existingEntity);
 
-                    var loc = CheckLocation((Location)newLoc, (Location)currentLoc);
-                    prop.SetValue(entity, loc);
+                    if (newLoc.Id == null && currentLoc != null)
+                        newLoc.Id = currentLoc.Id;
+                    prop.SetValue(entity, newLoc);
                 }
                 var propertyType = prop.PropertyType;
                 if (TypeExtensions.InheritsFrom(propertyType, typeof(EntityBase)))
@@ -58,7 +59,7 @@ namespace Infrastructure.Data.Repositories.Helpers
         }
 
         // Navigation property in one-to-one relationship
-        public static async Task<T> CheckNavigationProperty<T>(RaceBackendDbContext context, EntityBase entity, T navigationProperty, T existingNavigationProperty) where T : EntityBase
+        public static async Task<T> CheckNavigationProperty<T>(LocusBaseDbContext context, EntityBase entity, T navigationProperty, T existingNavigationProperty) where T : EntityBase
         {
             MapperConfiguration config = new MapperConfiguration(options =>
             {
@@ -78,8 +79,12 @@ namespace Infrastructure.Data.Repositories.Helpers
                     if (entry != null)
                     {
                         await CheckOneToOneRelationship(context, entity, navigationProperty, existingNavigationProperty);
+                        mapper.Map(navigationProperty, existingNavigationProperty);
+
                         SetForeignKey(entity, ref navigationProperty);
-                        context.Entry(navigationProperty).State = EntityState.Modified;
+                        navigationProperty = null;
+
+                        context.Entry(existingNavigationProperty).State = EntityState.Modified;
                     }
                     else
                     {
@@ -117,7 +122,7 @@ namespace Infrastructure.Data.Repositories.Helpers
             return null;
         }
 
-        public static async Task<EntityBase> CheckPrincipleAndDependant<T>(RaceBackendDbContext context, EntityBase entity, T property) where T : EntityBase
+        public static async Task<EntityBase> CheckPrincipleAndDependant<T>(LocusBaseDbContext context, EntityBase entity, T property) where T : EntityBase
         {
             if (property != null)
             {
@@ -154,7 +159,7 @@ namespace Infrastructure.Data.Repositories.Helpers
             return entity;
         }
 
-        public static async Task<Guid?> CheckOneToManyRelationship<T>(RaceBackendDbContext context, EntityBase entity, T property) where T : EntityBase
+        public static async Task<Guid?> CheckOneToManyRelationship<T>(LocusBaseDbContext context, EntityBase entity, T property) where T : EntityBase
         {
             if (property != null)
             {
@@ -198,7 +203,7 @@ namespace Infrastructure.Data.Repositories.Helpers
         //For required relationships, the dependents will all be deleted.
         //If the relationship is optional, the foreign key values of the dependents will be set to null.
         ///
-        public static async Task<Guid?> CheckOneToOneRelationship<T>(RaceBackendDbContext context, EntityBase entity, T property, T existingProperty) where T : EntityBase
+        public static async Task<Guid?> CheckOneToOneRelationship<T>(LocusBaseDbContext context, EntityBase entity, T property, T existingProperty) where T : EntityBase
         {
             try
             {
@@ -236,13 +241,13 @@ namespace Infrastructure.Data.Repositories.Helpers
             return null;
         }
 
-        public static bool IsTracked<T>(RaceBackendDbContext context, Guid? id) where T : EntityBase
+        public static bool IsTracked<T>(LocusBaseDbContext context, Guid? id) where T : EntityBase
         {
             bool tracking = context.ChangeTracker.Entries<T>().Any(x => x.Entity.Id == id);
             return tracking;
         }
 
-        public static void UntrackEntry<T>(RaceBackendDbContext context, Guid? id) where T : EntityBase
+        public static void UntrackEntry<T>(LocusBaseDbContext context, Guid? id) where T : EntityBase
         {
             if (id != null)
             {
@@ -302,22 +307,6 @@ namespace Infrastructure.Data.Repositories.Helpers
                 Console.WriteLine($"SetKey Exeption: {error}");
             }
             return false;
-        }
-
-        public static Location CheckLocation(Location newLocation, Location existingLocation)
-        {
-            Location location;
-            var currentTime = DateTime.UtcNow;
-            var timeMargin = new TimeSpan(1, 1, 0, 0, 0);
-            if (existingLocation?.Timestamp > newLocation?.Timestamp ||
-                newLocation?.Timestamp > currentTime.Add(timeMargin))
-            {
-                location = existingLocation;
-            }
-            else
-                location = newLocation;
-
-            return location;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Infrastructure.Data.Repositories
         private readonly IMapper _mapper;
         private readonly ILogger<UserSettingsRepository> _logger;
 
-        public UserSettingsRepository(RaceBackendDbContext dbContext, IMapper mapper,
+        public UserSettingsRepository(LocusBaseDbContext dbContext, IMapper mapper,
             ILogger<UserSettingsRepository> logger)
             : base(dbContext, mapper, logger)
         {

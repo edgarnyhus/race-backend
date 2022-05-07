@@ -21,7 +21,7 @@ namespace Infrastructure.Data.Repositories
         private readonly IServiceScopeFactory _scopeFactory;
 
 
-        public OrganizationRepository(RaceBackendDbContext dbContext, IServiceScopeFactory scopeFactory, IMapper mapper, ILogger<OrganizationRepository> logger)
+        public OrganizationRepository(LocusBaseDbContext dbContext, IServiceScopeFactory scopeFactory, IMapper mapper, ILogger<OrganizationRepository> logger)
             : base(dbContext, mapper, logger)
         {
             _scopeFactory = scopeFactory;

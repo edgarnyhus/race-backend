@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -41,7 +41,7 @@ namespace Api.Controllers
         }
 
         // GET: api/races/waypoints/<id>
-        [HttpGet("waypoints/{id}")]
+        [HttpGet("{raceId}/waypoints/{id}")]
         [Authorize("read:races")]
         public async Task<IActionResult> GetWaypointById(string id)
         {
@@ -75,7 +75,7 @@ namespace Api.Controllers
         }
 
         // PUT: api/races/waypoints<id>
-        [HttpPut("waypoints/{id}")]
+        [HttpPut("{raceId}/waypoints/{id}")]
         [Authorize("update:races")]
         public async Task<IActionResult> UpdateWaypoint(string id, WaypointContract contract)
         {
@@ -97,7 +97,7 @@ namespace Api.Controllers
         }
 
         // DELETE: api/races/waypoints<id>
-        [HttpDelete("waypoints/{id}")]
+        [HttpDelete("{raceId}/waypoints/{id}")]
         [Authorize("delete:races")]
         public async Task<IActionResult> DeleterWaypoint(string id)
         {

@@ -40,7 +40,7 @@ namespace Infrastructure.IoC
             services.AddTransient<IRepository<UserSettings>, UserSettingsRepository>();
             services.AddTransient<IRepository<Waypoint>, WaypointRepository>();
 
-            services.AddTransient<RaceBackendDbContext>();
+            services.AddTransient<LocusBaseDbContext>();
         }
     }
 }

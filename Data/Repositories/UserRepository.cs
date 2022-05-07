@@ -43,7 +43,7 @@ namespace Infrastructure.Data.Repositories
         private readonly string _api_identifier;
         private string _access_token;
 
-        public UserRepository(RaceBackendDbContext dbContext, IConfiguration configuration, IMapper mapper, ILogger<UserRepository> logger)
+        public UserRepository(LocusBaseDbContext dbContext, IConfiguration configuration, IMapper mapper, ILogger<UserRepository> logger)
             : base(dbContext, mapper, logger)
         {
             _configuration = configuration;

@@ -32,7 +32,7 @@ namespace Api
                 var hostBuilder = CreateHostBuilder(args).Build();
 
                 Log.Information("Running in environment " + environmentName);
-                Log.Information("Using Db connection " + configuration.GetConnectionString("RaceBackendDbConnection"));
+                Log.Information("Using Db connection " + configuration.GetConnectionString("LocusBasedDbConnection"));
 
                 hostBuilder.Run();
             }

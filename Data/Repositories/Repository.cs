@@ -16,12 +16,12 @@ namespace Infrastructure.Data.Repositories
 {
     public class Repository<T> : IRepository<T> where T : EntityBase
     {
-        private protected readonly RaceBackendDbContext _dbContext;
+        private protected readonly LocusBaseDbContext _dbContext;
         private readonly IMapper _mapper;
         private readonly ILogger<Repository<T>> _logger;
         public bool IsDevelopment { get; set; }
 
-        public Repository(RaceBackendDbContext dbContext, IMapper mapper, ILogger<Repository<T>> logger)
+        public Repository(LocusBaseDbContext dbContext, IMapper mapper, ILogger<Repository<T>> logger)
         {
             _dbContext = dbContext;
             _mapper = mapper;

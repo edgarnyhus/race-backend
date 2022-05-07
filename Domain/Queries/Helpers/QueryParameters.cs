@@ -4,7 +4,7 @@ namespace Domain.Queries.Helpers
 {
     public class QueryParameters : IQueryParameters
     {
-        //public SignType sign_type { get; set; }
+        //public SignType signtype { get; set; }
         public QueryParameters()
         {
             max_page_size = 1000;
@@ -13,11 +13,11 @@ namespace Domain.Queries.Helpers
         }
 
         public bool multitenancy { get; set; }
+        public string? name { get; set; }
         public string? state { get; set; }
         public string? within_radius { get; set; }
         public string? within_square { get; set; }
         public string? within_area { get; set; }
-        public string? sign_type { get; set; }
         public string? user_id { get; set; }
         public string? category { get; set; }
         public string? qr_code { get; set; }
@@ -28,7 +28,8 @@ namespace Domain.Queries.Helpers
         public string? phone_number { get; set; }
         public string? email { get; set; }
         public string? race_id { get; set; }
-        public string? sign_group_id { get; set; }
+        public string? signtype_id { get; set; }
+        public string? signgroup_id { get; set; }
 
         // Paging      
         public int max_page_size { get; set; }

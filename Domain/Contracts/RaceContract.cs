@@ -8,17 +8,17 @@ namespace Domain.Contracts
 {
     public class RaceContract 
     {
-        [JsonProperty("tenant_id")]
-        public string? tenantId { get; set; }
-        public string? name { get; set; }
+        public string? Name { get; set; }
+        public string? Notes { get; set; }
         [JsonProperty("created_by")]
-        public string? createdBy { get; set; }
+        public string? CreatedBy { get; set; }
         [JsonProperty("scheduled_at")]
-        public DateTime? scheduledAt { get; set; }
-        public string? state { get; set; }
-        public string? notes { get; set; }
+        public DateTime? ScheduledAt { get; set; }
+        public string? State { get; set; }
         //public DriverContract? driver { get; set; }
         [JsonPropertyName("organization_id")]
-        public string? organizationId { get; set; }
+        public string? OrganizationId { get; set; }
+        [JsonProperty("tenant_id")]
+        public string? TenantId { get; set; }
     }
 }

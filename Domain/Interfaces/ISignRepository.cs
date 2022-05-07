@@ -11,6 +11,8 @@ namespace Domain.Interfaces
     public interface ISignRepository : IRepository<Sign>
     {
         Task<Sign> FindById(string id);
+        Task<bool> Update(string id, Sign entity);
+        Task<bool> Remove(string id);
         List<KeyValuePair<int, string>> GetSignStates();
     }
 }

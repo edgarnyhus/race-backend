@@ -144,7 +144,7 @@ namespace Api.API
         }
 
         // GET: api/routes/signs/states
-        [HttpGet("signs/states")]
+        [HttpGet("states")]
         [Authorize("read:signs")]
         public IActionResult GetSignStates()
         {
