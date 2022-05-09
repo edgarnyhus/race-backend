@@ -12,21 +12,14 @@ namespace Domain.Specifications
     {
         public GetSignsSpecification(string id) : base(x => x.Id.Equals(id))
         {
-            // AddInclude(x => x.Location);
-            // AddInclude(x => x.Model);
-            // AddInclude(x => x.Temperature);
-            // AddInclude(x => x.Organization);
+
         }
 
         public GetSignsSpecification(IQueryParameters parameters) : base(parameters)
         {
-            //var signType = parameters.signtype;
             if (!string.IsNullOrEmpty(parameters.within_radius))
             {
                 var wd = JsonConvert.DeserializeObject<WithinDistance>(parameters.within_radius);
-                //if (!string.IsNullOrEmpty(wd.signtype))
-                //    signType = wd.signtype;
-
                 var location = new Point(wd.longitude, wd.latitude) { SRID = 4326 };
 
                 AddCriteria(c => c.Location != null && c.GeoLocation != null &&
@@ -35,9 +28,6 @@ namespace Domain.Specifications
             else if (!string.IsNullOrEmpty(parameters.within_square))
             {
                 var we = JsonConvert.DeserializeObject<WithinEnvelope>(parameters.within_square);
-                //if (!string.IsNullOrEmpty(we.signtype))
-                //    signType = we.signtype;
-
                 AddCriteria(c => c.Location != null && c.GeoLocation != null);
             }
 
@@ -61,8 +51,8 @@ namespace Domain.Specifications
 
             if (!string.IsNullOrEmpty(parameters.name))
             {
-                var name = parameters.name;
-                AddCriteria(c => c.Name == name);
+                AddCriteria(c => c.Name.StartsWith(parameters.name));
+                AddCriteria(c => c.State != SignState.Discarded);
             }
 
             if (!string.IsNullOrEmpty(parameters.qr_code))
@@ -70,11 +60,6 @@ namespace Domain.Specifications
                 var qrCode = parameters.qr_code;
                 AddCriteria(c => c.QrCode == qrCode);
             }
-            //else if (!string.IsNullOrEmpty(parameters.signtype))
-            //{
-            //    var name = parameters.signtype;
-            //    AddCriteria(c => c.SignType != null && name.Equals(c.SignType.Name, StringComparison.InvariantCultureIgnoreCase));
-            //}
 
             if (!string.IsNullOrEmpty(parameters.state))
             {

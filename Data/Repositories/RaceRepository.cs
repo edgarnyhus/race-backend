@@ -122,18 +122,25 @@ namespace Infrastructure.Data.Repositories
             return true;
         }
 
-        public async Task<bool> UpdateSign(string id, Sign entity)
+        public async Task<bool> UpdateSignInRace(string id, Sign entity)
         {
             var configuration = new MapperConfiguration(cfg =>
                 cfg.CreateMap<Sign, Sign>()
                     .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null)));
             var mapper = configuration.CreateMapper();
 
-            Guid.TryParse(id, out Guid guid);
-            var existingEntity = await _dbContext.Set<Sign>()
-                .Include(x => x.Location)
-                .Where(x => x.Id == guid)
-                .FirstOrDefaultAsync();
+            var query = _dbContext.Set<Sign>()
+                .Include(x => x.Location);
+
+            Sign existingEntity = null;
+            if (Guid.TryParse(id, out Guid guid))
+                existingEntity = await query
+                    .Where(x => x.Id == guid)
+                    .FirstOrDefaultAsync();
+            else
+                existingEntity = await query
+                    .Where(x => x.QrCode == id || (x.Name == id && x.OrganizationId == entity.OrganizationId))
+                    .FirstOrDefaultAsync();
 
             if (existingEntity == null)
             {
@@ -152,12 +159,17 @@ namespace Infrastructure.Data.Repositories
 
         public async Task<bool> RemoveSignFromRace(string id)
         {
-            Guid.TryParse(id, out Guid guid);
-            var sign = await _dbContext.Signs
-                .Where(x => x.Id == guid)
-                .FirstOrDefaultAsync();
+            Sign existingEntity = null;
+            if (Guid.TryParse(id, out Guid guid))
+                existingEntity = await _dbContext.Set<Sign>()
+                    .Where(x => x.Id == guid)
+                    .FirstOrDefaultAsync();
+            else
+                existingEntity = await _dbContext.Set<Sign>()
+                    .Where(x => x.QrCode == id)
+                    .FirstOrDefaultAsync();
 
-            sign.RaceId = null;
+            existingEntity.RaceId = null;
 
             await _dbContext.SaveChangesAsync();
             return true;

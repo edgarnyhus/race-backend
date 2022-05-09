@@ -20,7 +20,7 @@ namespace Api
             CreateMap<Location, Location>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<Location, LocationDto>()
-                .ForMember(d => d.Timestamp, opt => opt.MapFrom<AttachmentCreatedDateResolver, DateTime>(s => (DateTime)s.Timestamp))
+                //.ForMember(d => d.Timestamp, opt => opt.MapFrom<AttachmentCreatedDateResolver, DateTime>(s => (DateTime)s.Timestamp))
                 .ReverseMap();
             CreateMap<LocationContract, Location>()
                 .ReverseMap();

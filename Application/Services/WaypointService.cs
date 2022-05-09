@@ -68,46 +68,29 @@ public class WaypointService : IWaypointService
         return response;
     }
 
-    public async Task<WaypointDto> CreateWaypoint(WaypointContract waypointContract)
+    public async Task<WaypointDto> CreateWaypoint(WaypointContract contract)
     {
         //var isAdmin = await _tenantAccessService.IsAdministrator();
         //if (_multitenancy && !isAdmin)
         //    throw new UnauthorizedAccessException(
         //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
-        var entity = _mapper.Map<WaypointContract, Waypoint>(waypointContract);
-        //entity.Id = GuidExtensions.CheckGuid(entity.Id);
+        var entity = UpdateProperties(contract);
         entity.Location.Timestamp = DateTime.UtcNow;
-
-        if (entity.RaceId == null)
-        {
-            // Get RaceId from request path - api/races/{race_id}/waypoints
-            var path = _httpContextAccessor.HttpContext.Request.Path.Value;
-            var arr = path.Split('/');
-            entity.RaceId = new Guid(arr[3]);
-        }
 
         var result = await _repository.Add(entity);
         var response = _mapper.Map<Waypoint, WaypointDto>(result);
         return response;
     }
 
-    public async Task<bool> UpdateWaypoint(string id, WaypointContract waypointContract)
+    public async Task<bool> UpdateWaypoint(string id, WaypointContract contract)
     {
         //var isAdmin = await _tenantAccessService.IsAdministrator();
         //if (_multitenancy && !isAdmin)
         //    throw new UnauthorizedAccessException(
         //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
-        var entity = _mapper.Map<WaypointContract, Waypoint>(waypointContract);
-
-        if (entity.RaceId == null)
-        {
-            // Get RaceId from request path - api/races/{race_id}/waypoints
-            var path = _httpContextAccessor.HttpContext.Request.Path.Value;
-            var arr = path.Split('/');
-            entity.RaceId = new Guid(arr[3]);
-        }
+        var entity = UpdateProperties(contract);
 
         Guid.TryParse(id, out Guid guid);
         var result = await _repository.Update(guid, entity);
@@ -124,5 +107,20 @@ public class WaypointService : IWaypointService
         Guid.TryParse(id, out Guid guid);
         var result = await _repository.Remove(guid);
         return result;
+    }
+
+    private Waypoint UpdateProperties(WaypointContract contract)
+    {
+        var entity = _mapper.Map<WaypointContract, Waypoint>(contract);
+
+        if (entity.RaceId == null)
+        {
+            // Get RaceId from request path - api/races/{race_id}/waypoints
+            var path = _httpContextAccessor.HttpContext.Request.Path.Value;
+            var arr = path.Split('/');
+            entity.RaceId = new Guid(arr[3]);
+        }
+
+        return entity;
     }
 }

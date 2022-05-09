@@ -14,12 +14,15 @@ using Domain.Dtos;
 using Domain.Exceptions;
 using Domain.Models;
 using Domain.Queries.Helpers;
+using Microsoft.AspNetCore.Cors;
 
 namespace Api.API
 {
 
     [ApiController]
+    [EnableCors("SiteCorsPolicy")]
     [Route("api/[controller]")]
+
     public class UsersController : ControllerBase
     {
         private readonly IUserService _service;

@@ -16,6 +16,7 @@ using Domain.Multitenant;
 using Domain.Queries.Helpers;
 using Domain.Specifications;
 using Microsoft.AspNetCore.Http;
+using System.Text.RegularExpressions;
 
 namespace Application.Services
 {
@@ -141,7 +142,7 @@ namespace Application.Services
 
 
         //
-        // Race Signs
+        // Signs of Race
         //
 
         public async Task<IEnumerable<SignDto>> GetSignsOfRace(QueryParameters queryParameters)
@@ -176,14 +177,51 @@ namespace Application.Services
             return result;
         }
 
-        public async Task<bool> UpdateSign(string id, SignContract contract)
+        public async Task<bool> UpdateSignInRace(string id, SignContract contract)
         {
             //var isAdmin = await _tenantAccessService.IsAdministrator();
             //if (_multitenancy && !isAdmin)
             //    throw new UnauthorizedAccessException(
             //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
+            var entity = await UpdateSignProperties(contract);
+            if (entity.Location == null)
+                throw new ArgumentNullException("location");
+
+            var result = await _repository.UpdateSignInRace(id, entity);
+            return result;
+        }
+
+        public async Task<bool> RemoveSignFromRace(string id)
+        {
+            var result = await _repository.RemoveSignFromRace(id);
+            return result;
+        }
+
+        
+        //
+        // Misc routines
+        //
+
+        private async Task<Sign> UpdateSignProperties(SignContract contract)
+        {
+            QueryParameters parameters = new QueryParameters();
+            var tenantValidation = new TenantValidation(_tenantAccessService, _multitenancy);
+            await tenantValidation.Validate(parameters);
+
             var entity = _mapper.Map<SignContract, Sign>(contract);
+
+            if (entity.TenantId == null)
+            {
+                if (Guid.TryParse(parameters.tenant_id, out Guid tid))
+                    entity.TenantId = tid;
+            }
+
+            if (entity.OrganizationId == null)
+            {
+                if (Guid.TryParse(parameters.organization_id, out Guid oid))
+                    entity.OrganizationId = oid;
+            }
 
             if (entity.RaceId == null)
             {
@@ -193,14 +231,8 @@ namespace Application.Services
                 entity.RaceId = new Guid(arr[3]);
             }
 
-            var result = await _repository.UpdateSign(id, entity);
-            return result;
+            return entity;
         }
 
-        public async Task<bool> RemoveSignFromRace(string id)
-        {
-            var result = await _repository.RemoveSignFromRace(id);
-            return result;
-        }
     }
 }

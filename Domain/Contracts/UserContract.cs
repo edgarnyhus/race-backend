@@ -22,26 +22,26 @@ namespace Domain.Contracts
 
     public class UserContract
     {
-        public string? id { get; set; }
-        public string? name { get; set; } = null!;
-        public string? nickname { get; set; } = null!;
-        public string? email { get; set; }
-        [JsonPropertyName("phone_number")]
-        public string? phoneNumber { get; set; }
+        public string? Id { get; set; }
+        public string? Name { get; set; } = null!;
+        public string? Nickname { get; set; } = null!;
+        public string? Email { get; set; }
+        [JsonProperty("phone_number")]
+        public string? PhoneNumber { get; set; }
         //[JsonPropertyName("user_metadata")]
         //public UserMetadataContract? userMetadata { get; set; }
-        //[JsonPropertyName("app_metadata")]
-        //public AppMetadataContract? appMetadata { get; set; }
-        //public string? picture { get; set; }
+        [JsonProperty("app_metadata")]
+        public AppMetadataContract? AppMetadata { get; set; }
+        //public string? Picture { get; set; }
         //[JsonPropertyName("user_id")]
-        //public string? userId { get; set; } = null!;
-        //public string? password { get; set; }
+        //public string? UserId { get; set; } = null!;
+        //public string? Password { get; set; }
         //[JsonProperty("email_verified")]
-        //public bool? emailVerified { get; set; }
-        [JsonPropertyName("organization_id")]
-        public string? organizationId { get; set; }
-        [JsonPropertyName("tenant_id")]
-        public string? tenantId { get; set; }
+        //public bool? EmailVerified { get; set; }
+        [JsonProperty("organization_id")]
+        public string? OrganizationId { get; set; }
+        [JsonProperty("tenant_id")]
+        public string? TenantId { get; set; }
     }
 
 }

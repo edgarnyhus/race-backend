@@ -3,8 +3,20 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <Configurations>Debug;Release;R</Configurations>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'R|AnyCPU' ">
+    <DebugType></DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\R</OutputPath>
+    <DefineConstants></DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <IntermediateOutputPath>obj\R</IntermediateOutputPath>
+    <NoWarn></NoWarn>
+    <NoStdLib>false</NoStdLib>
+    <Nullable></Nullable>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Auth0.AuthenticationApi" Version="7.15.0" />
     <PackageReference Include="AutoMapper" Version="11.0.1" />

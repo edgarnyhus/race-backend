@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -12,7 +12,6 @@ using Microsoft.Extensions.Hosting;
 using Infrastructure.Data.Context;
 using Infrastructure.IoC;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -44,7 +43,6 @@ namespace Api
         }
 
         public static IConfiguration Configuration { get; set; }
-        private readonly string _myAllowSpecificOrigins = "_myAllowSpecificOrigins";
         private bool IsDevelopment { get; set; } = false;
 
 
@@ -52,26 +50,25 @@ namespace Api
         public void ConfigureServices(IServiceCollection services)
         {
             var connectionString = Configuration.GetConnectionString("LocusBasedDbConnection");
-            string cors = Configuration["Auth0:AllowWithOrigins"];
+            var origins = Configuration["Auth0:AllowWithOrigins"].Split(";");
+
 
             // CORS config start
             services.AddCors(options =>
             {
-                options.AddPolicy(_myAllowSpecificOrigins,
-                    builder =>
+                options.AddPolicy(name: "SiteCorsPolicy",
+                    policy =>
                     {
-                        builder
-                            // .WithOrigins(
-                            //     "https://race-app.azurewebsites.net",
-                            //     "https://race-app-staging.azurewebsites.net",
-                            //     "https://racemap.netlify.app/",
-                            //     "https://localhost;8080", 
-                            //     "http://localhost:8080"
-                            // ) /* list of environments that will access this api */
-                            .AllowAnyOrigin()
+                        policy
+                             .WithOrigins(
+                               origins
+                               //"http://localhost:4000",
+                               //"https://localhost:4001"
+                             ) /* list of environments that will access this api */
+                            //.AllowAnyOrigin()
                             .AllowAnyHeader()
-                            .AllowAnyMethod();
-                        // .AllowCredentials();
+                            .AllowAnyMethod()
+                            .AllowCredentials();
                     });
             });
             // CORS config end
@@ -129,7 +126,7 @@ namespace Api
             // Policy config end
 
             services.AddAutoMapper(typeof(Startup));
-          
+
             bool.TryParse(Configuration["useMySql"], out bool useMySql);
             if (useMySql)
             {
@@ -161,16 +158,13 @@ namespace Api
             // Includes support for Razor Pages and controllers.
             services.AddMvc(options => options.EnableEndpointRouting = false);
 
-            //services.AddRazorPages(options => { options.Conventions.AddPageRoute("/index", "index/{qrcode?}"); })
-            //    .AddNewtonsoftJson();
-
             services.AddControllers(options =>
                     options.Filters.Add(new HttpResponseExceptionFilter())
                 )
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.ContractResolver = new DefaultContractResolver
-                        {NamingStrategy = new SnakeCaseNamingStrategy()};
+                    { NamingStrategy = new SnakeCaseNamingStrategy() };
                     //options.SerializerSettings.Culture = new CultureInfo("nb_no");
                     options.SerializerSettings.DateTimeZoneHandling =
                         DateTimeZoneHandling
@@ -255,7 +249,7 @@ namespace Api
 
             app.UseRouting();
 
-            app.UseCors(_myAllowSpecificOrigins);
+            app.UseCors("SiteCorsPolicy");
 
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {

@@ -20,12 +20,14 @@ namespace Infrastructure.Data.Repositories.Helpers
                 if (prop.Name == "Location" && existingEntity != null
                      && (entity.GetType() == typeof(Sign) || entity.GetType() == typeof(Waypoint)))
                 {
-                    var newLoc = (Location) prop.GetValue(entity);
-                    var currentLoc = (Location) prop.GetValue(existingEntity);
+                    var location = (Location) prop.GetValue(entity);
+                    var existingLocation = (Location) prop.GetValue(existingEntity);
 
-                    if (newLoc.Id == null && currentLoc != null)
-                        newLoc.Id = currentLoc.Id;
-                    prop.SetValue(entity, newLoc);
+                    if (location != null) {
+                        if (location.Id == null && existingLocation != null)
+                            location.Id = existingLocation.Id;
+                        prop.SetValue(entity, location);
+                    }
                 }
                 var propertyType = prop.PropertyType;
                 if (TypeExtensions.InheritsFrom(propertyType, typeof(EntityBase)))

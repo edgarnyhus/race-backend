@@ -18,7 +18,7 @@ namespace Application.Interfaces
 
         Task<IEnumerable<SignDto>> GetSignsOfRace(QueryParameters queryParameters);
         Task<bool> AddSignToRace(SignContract contract);
-        Task<bool> UpdateSign(string id, SignContract contract);
+        Task<bool> UpdateSignInRace(string id, SignContract contract);
         Task<bool> RemoveSignFromRace(string id);
     }
 }

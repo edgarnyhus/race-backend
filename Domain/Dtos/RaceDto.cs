@@ -20,8 +20,8 @@ namespace Domain.Dtos
         [JsonProperty("updated_at")]
         public DateTime? UpdatedAt { get; set; }
         public string? State { get; set; }
-        //public List<WaypointDto>? waypoints { get; set; }
-        public List<SignDto>? signs { get; set; }
+        //public List<WaypointDto>? Waypoints { get; set; }
+        //public List<SignDto>? Signs { get; set; }
         public DriverDto? Driver { get; set; }
         [JsonProperty("organization_id")]
         public string? OrganizationId { get; set; }

@@ -11,7 +11,7 @@ namespace Domain.Dtos
         public string? Address { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
-        public DateTime? Timestamp { get; set; }
+        //public DateTime? Timestamp { get; set; }
         [JsonPropertyName("waypoint_id")]
         public string? WaypointId { get; set; }
         [JsonPropertyName("sign_id")]

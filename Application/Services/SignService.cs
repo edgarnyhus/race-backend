@@ -66,17 +66,19 @@ namespace Application.Services
             //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
             if (string.IsNullOrEmpty(contract.Name))
-                throw new ArgumentNullException("Invalid request body. The 'name' property must be specified.");
+                throw new ArgumentNullException("name");
             if (string.IsNullOrEmpty(contract.SignTypeId))
-                throw new ArgumentNullException("Invalid request body. The 'signtype_id' property must be specified.");
+                throw new ArgumentNullException("signtype_id");
 
             contract.SequenceNumber = 1;
-            var entity = await UpdateProperties(contract);
+            Tuple<string, Sign> tuple = await UpdateProperties(contract);
+            var prefix = tuple.Item1;
+            var entity = tuple.Item2; 
 
             // If 'name' exists, discard the sign and increase the sequence number
             var spec = new GetSignsSpecification(new QueryParameters()
             {
-                name = entity.Name,
+                name = prefix,
                 organization_id = entity.OrganizationId.ToString()
             });
             IEnumerable<Sign> res = await _repository.Find(spec);
@@ -88,7 +90,8 @@ namespace Application.Services
                 await _repository.Update((Guid)existingEntity.Id, existingEntity);
 
                 entity.SequenceNumber = existingEntity.SequenceNumber + 1;
-                entity.Name = ComposeName(entity.Name, (int)entity.SequenceNumber);
+                Tuple<string, string> t = ComposeName(entity.Name, (int)entity.SequenceNumber);
+                entity.Name = t.Item2;
             }
 
             if (string.IsNullOrEmpty(entity.QrCode))
@@ -118,10 +121,9 @@ namespace Application.Services
             //    throw new UnauthorizedAccessException(
             //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
-            var entity = await UpdateProperties(contract);
+            Tuple<string, Sign> tuple = await UpdateProperties(contract);
 
-            Guid.TryParse(id, out Guid guid);
-            var result = await _repository.Update(guid, entity);
+            var result = await _repository.Update(id, tuple.Item2);
 
             return result;
         }
@@ -155,23 +157,28 @@ namespace Application.Services
             return result;
         }
 
-        private string ComposeName(string str, int sequenceNumber)
+
+        //
+        // Misc routines
+        //
+
+        private Tuple<string, string> ComposeName(string str, int sequenceNumber)
         {
             string name = str;
 
-            //var re = new Regex("^([a-z ]+)(.+)", RegexOptions.IgnoreCase);
             var re = new Regex(@"(.*?)([\$\+\-].*)", RegexOptions.IgnoreCase);
             var m = re.Match(str);
+            string prefix = str;
             if (m.Success)
             {
-                name = m.Groups[1].Value;
+                prefix = m.Groups[1].Value;
             }
             //var s = string.Format("{0}-{1:000}", name, sequenceNumber);
-            name += "-" + sequenceNumber.ToString("D3");
-            return name;
+            name = prefix + "-" + sequenceNumber.ToString("D3");
+            return new Tuple<string, string>(prefix, name);
         }
 
-        private async Task<Sign> UpdateProperties(SignContract contract)
+        private async Task<Tuple<string, Sign>> UpdateProperties(SignContract contract)
         {
             QueryParameters parameters = new QueryParameters();
             var tenantValidation = new TenantValidation(_tenantAccessService, _multitenancy);
@@ -190,9 +197,10 @@ namespace Application.Services
                     entity.OrganizationId = oid;
             }
 
-            entity.Name = ComposeName(entity.Name, (int)entity.SequenceNumber);
+            Tuple<string, string> res = ComposeName(entity.Name, (int)entity.SequenceNumber);
+            entity.Name = res.Item2;
 
-            return entity;
+            return new Tuple<string, Sign>(res.Item1, entity);
         }
     }
 }

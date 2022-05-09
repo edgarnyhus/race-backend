@@ -167,6 +167,28 @@ namespace Api.API
             }
         }
 
+        // POST: api/races/{raceId}/waypoints
+        [HttpPut("{raceId}/signs/{id}")]
+        [Authorize("create:races")]
+        public async Task<IActionResult> UpdateSign(string id, [FromBody] SignContract contract)
+        {
+            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
+            try
+            {
+                _resolver.SetTimeZone(Request.Headers["TimeZone"]);
+
+                var result = await _service.UpdateSignInRace(id, contract);
+                return Ok("Sign updated");
+            }
+            catch (Exception ex)
+            {
+                var error = ex.Message;
+                if (ex.InnerException != null)
+                    error = ex.InnerException.Message;
+                throw new HttpResponseException((int)HttpStatusCode.Conflict, error);
+            }
+        }
+
         // DELETE: api/races/waypoints<id>
         [HttpDelete("{raceId}/signs/{id}")]
         [Authorize("delete:races")]

@@ -38,6 +38,7 @@ namespace Infrastructure.Data.Repositories
         }
 
         private readonly IConfiguration _configuration;
+        private readonly IMapper _mapper;
         private readonly ILogger<UserRepository> _logger;
         private readonly string _audience;
         private readonly string _api_identifier;
@@ -47,6 +48,7 @@ namespace Infrastructure.Data.Repositories
             : base(dbContext, mapper, logger)
         {
             _configuration = configuration;
+            _mapper = mapper;
             _logger = logger;
             _audience = _configuration["Auth0_mgt:audience"];
             _api_identifier = _configuration["Auth0_mgt:api_identifier"];
@@ -210,7 +212,7 @@ namespace Infrastructure.Data.Repositories
                 PhoneNumber = user.PhoneNumber,
                 TenantId = tenantId,
                 OrganizationId = organizationId,
-                //AppMetadata = appMetadata
+                AppMetadata = appMetadata
             };
 
             // These properties will cause a Payload error if set
@@ -225,6 +227,7 @@ namespace Infrastructure.Data.Repositories
             var accessToken = await GetAccessToken();
             var mgtClient = new RestClient($"{_audience}users");
             var request = new RestRequest(Method.POST);
+            User entry;
 
             var json = JsonConvert.SerializeObject(user, Formatting.None, new JsonSerializerSettings
             {
@@ -240,17 +243,37 @@ namespace Infrastructure.Data.Repositories
 
             var response = await mgtClient.ExecuteAsync(request);
             if (!response.IsSuccessful)
-                throw new UsersException(response.Content ?? "Unspecified error");
-
-            var entry = JsonConvert.DeserializeObject<User>(response.Content);
-
-            // Set dafault user role
-            string[] roles = { _configuration["Auth0_mgt:defaultUserRole"] };
-            appMetadata = new AppMetadata()
             {
-                Roles = roles
-            };
-            await SetUserRoles(entry.UserId, appMetadata);
+                if (!response.Content.ToLower().Contains("user already exists"))
+                    throw new UsersException(response.Content ?? "Unspecified error");
+
+                var endpoint = $"{_audience}users-by-email?email={user.Email}";
+                mgtClient = new RestClient(endpoint);
+
+                request = new RestRequest(Method.GET);
+                request.AddHeader("authorization", $"Bearer {accessToken.access_token}");
+                response = await mgtClient.ExecuteAsync(request);
+                if (!response.IsSuccessful)
+                    throw new UsersException(response.Content ?? "Unspecified error");
+
+                var users = JsonConvert.DeserializeObject<List<User>>(response.Content);
+                if (users.Count == 0)
+                    throw new UsersException("Unspecified error");
+
+                entry = users.FirstOrDefault();
+            }
+            else
+            {
+                entry = JsonConvert.DeserializeObject<User>(response.Content);
+
+                // Set dafault user role
+                string[] roles = { _configuration["Auth0_mgt:defaultUserRole"] };
+                appMetadata = new AppMetadata()
+                {
+                    Roles = roles
+                };
+                await SetUserRoles(entry.UserId, appMetadata);
+            }
 
             // Now add the local User data
             entity.UserId = entry?.UserId;
@@ -294,7 +317,7 @@ namespace Infrastructure.Data.Repositories
                 PhoneNumber = user.PhoneNumber,
                 TenantId = tenantId,
                 OrganizationId = organizationId,
-                //AppMetadata = appMetadata
+                AppMetadata = appMetadata
             };
             
             // These properties will cause a Payload error if set
@@ -436,12 +459,14 @@ namespace Infrastructure.Data.Repositories
             try
             {
                 string id = user.Id != null ? user.Id.ToString() : user.UserId;
-                var usr = await GetUserFromDb(id);
+                var existingEntity = await GetUserFromDb(id);
                 //if (usr != null)
                 //    id = usr.UserId;
 
-                Guid? tenantId = usr != null ? usr.TenantId : user.TenantId;
-                Guid? organizationId = usr != null ? usr.OrganizationId : user.OrganizationId;
+                //Guid? tenantId = usr != null ? usr.TenantId : user.TenantId;
+                //Guid? organizationId = usr != null ? usr.OrganizationId : user.OrganizationId;
+                Guid? tenantId = user.TenantId ?? existingEntity?.TenantId;
+                Guid? organizationId = user.OrganizationId ?? existingEntity?.OrganizationId;
                 if (tenantId == null && Guid.TryParse(user.AppMetadata?.TenantId, out Guid tid))
                     tenantId = tid;
                 if (organizationId == null && Guid.TryParse(user.AppMetadata?.OrganizationId, out Guid oid))
@@ -450,21 +475,38 @@ namespace Infrastructure.Data.Repositories
                 // Make a user object in our database - not all properties are mapped
                 var entity = new User()
                 {
-                    Id = usr != null ? usr.Id : user.Id,
+                    Id = existingEntity?.Id ?? user.Id,
                     Name = user.Name,
                     Nickname = user.Nickname,
                     UserId = user.UserId,
                     Email = user.Email,
-                    PhoneNumber = usr != null ? usr.PhoneNumber : user.PhoneNumber,
+                    PhoneNumber = user.PhoneNumber ?? existingEntity?.PhoneNumber,
                     TenantId = tenantId,
                     OrganizationId = organizationId,
                 };
                 await PropertyChecks.CheckPrincipleAndDependant(_dbContext, entity, entity.Organization);
 
-                if (usr == null)
+                if (existingEntity == null)
                     entity = await base.Add(entity);
                 else
-                    _dbContext.Entry(entity).CurrentValues.SetValues(usr);
+                {
+                    //_dbContext.Entry(entity).CurrentValues.SetValues(usr);
+
+                    var configuration = new MapperConfiguration(cfg => cfg
+                        .CreateMap<Sign, Sign>()
+                        .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null)));
+                    var mapper = configuration.CreateMapper();
+
+                    _dbContext.Attach(existingEntity);
+                    mapper.Map(entity, existingEntity);
+                    _dbContext.Entry(existingEntity.Organization).State = EntityState.Detached;
+                    existingEntity.TenantId = entity.TenantId;
+                    existingEntity.OrganizationId = entity.OrganizationId;
+
+                    //foreach (var e in _dbContext.ChangeTracker.Entries())
+                    //    _logger.LogInformation("Users update {0}: {1}", e.Entity.GetType().Name, e.State);
+                }
+
                 await _dbContext.SaveChangesAsync();
                 return entity;
             }

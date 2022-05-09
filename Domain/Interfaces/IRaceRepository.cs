@@ -13,7 +13,7 @@ namespace Domain.Interfaces
     {
         Task<IEnumerable<Sign>> GetSignsOfRace(GetSignsSpecification specification);
         Task<bool> AddSignToRace(Sign entity);
-        Task<bool> UpdateSign(string id, Sign entity);
+        Task<bool> UpdateSignInRace(string id, Sign entity);
         Task<bool> RemoveSignFromRace(string id);
     }
 }
