@@ -38,7 +38,6 @@ namespace Api.API
         [Authorize("read:signs")]
         public async Task<IActionResult> GetSigns([FromQuery] QueryParameters queryParameters)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
             var result = await _service.GetSigns(queryParameters);
@@ -59,7 +58,6 @@ namespace Api.API
         [Authorize("read:signs")]
         public async Task<IActionResult> GetCount([FromQuery] QueryParameters queryParameters)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             var result = await _service.GetCount(queryParameters);
             return Ok(result);
         }
@@ -69,7 +67,6 @@ namespace Api.API
         [Authorize("read:signs")]
         public async Task<IActionResult> GetSignById(string id)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
             
             var result = await _service.GetSignById(id);
@@ -81,7 +78,6 @@ namespace Api.API
         [Authorize("create:signs")]
         public async Task<IActionResult> CreateSign([FromBody] SignContract contract)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
@@ -106,7 +102,6 @@ namespace Api.API
         [Authorize("update:signs")]
         public async Task<IActionResult> UpdateSign(string id, [FromBody] SignContract contract)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
@@ -128,7 +123,6 @@ namespace Api.API
         [Authorize("delete:signs")]
         public async Task<IActionResult> DeleteSign(string id)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 var result = await _service.DeleteSign(id);

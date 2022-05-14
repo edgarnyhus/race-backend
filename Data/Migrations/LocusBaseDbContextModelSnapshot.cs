@@ -449,11 +449,13 @@ namespace Infrastructure.Data.Migrations
                 {
                     b.HasOne("Domain.Models.Sign", "Sign")
                         .WithOne("Location")
-                        .HasForeignKey("Domain.Models.Location", "SignId");
+                        .HasForeignKey("Domain.Models.Location", "SignId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Domain.Models.Waypoint", "Waypoint")
                         .WithOne("Location")
-                        .HasForeignKey("Domain.Models.Location", "WaypointId");
+                        .HasForeignKey("Domain.Models.Location", "WaypointId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Sign");
 
@@ -549,7 +551,7 @@ namespace Infrastructure.Data.Migrations
                     b.HasOne("Domain.Models.Race", "Race")
                         .WithMany("Waypoints")
                         .HasForeignKey("RaceId")
-                        .OnDelete(DeleteBehavior.ClientCascade);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Race");
                 });

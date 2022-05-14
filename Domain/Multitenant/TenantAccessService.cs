@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Domain.Models;
 using Domain.Models.Helpers;
+using System;
 
 namespace Domain.Multitenant
 {
@@ -80,6 +81,9 @@ namespace Domain.Multitenant
             if (string.IsNullOrEmpty(roles))
             {
                 var identifier = await _tenantResolutionStrategy.GetTenantIdentifierAsync();
+                if (string.IsNullOrEmpty(identifier))
+                    return false;
+
                 //if (Constants.TenantGlobalAdminDomain.Equals(identifier, System.StringComparison.OrdinalIgnoreCase))
                 //    return true;
                 var identifierList = identifier.Split(',');

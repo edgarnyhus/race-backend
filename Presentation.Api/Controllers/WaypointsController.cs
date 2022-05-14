@@ -32,7 +32,6 @@ namespace Api.Controllers
         [Authorize("read:races")]
         public async Task<IActionResult> GetWaypoints(string raceId, [FromQuery] QueryParameters queryParameters)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
             queryParameters.race_id = raceId;
@@ -45,7 +44,6 @@ namespace Api.Controllers
         [Authorize("read:races")]
         public async Task<IActionResult> GetWaypointById(string id)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
         
             var result = await _service.GetWaypointById(id);
@@ -57,7 +55,6 @@ namespace Api.Controllers
         [Authorize("create:races")]
         public async Task<IActionResult> CreateWaypoint([FromBody] WaypointContract contract)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
@@ -79,7 +76,6 @@ namespace Api.Controllers
         [Authorize("update:races")]
         public async Task<IActionResult> UpdateWaypoint(string id, WaypointContract contract)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 var result = await _service.UpdateWaypoint(id, contract);
@@ -101,7 +97,6 @@ namespace Api.Controllers
         [Authorize("delete:races")]
         public async Task<IActionResult> DeleterWaypoint(string id)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);

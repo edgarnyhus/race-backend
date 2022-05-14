@@ -31,7 +31,6 @@ namespace Api.API
         [Authorize("read:races")]
         public async Task<IActionResult> GetRaces([FromQuery] QueryParameters queryParameters)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
             var result = await _service.GetAllRaces(queryParameters);
@@ -53,7 +52,6 @@ namespace Api.API
         [Authorize("read:races")]
         public async Task<IActionResult> GetRaceById(string id)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
             var result = await _service.GetRaceById(id);
@@ -65,7 +63,6 @@ namespace Api.API
         [Authorize("create:races")]
         public async Task<IActionResult> CreateRace([FromBody] RaceContract contract)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
@@ -87,7 +84,6 @@ namespace Api.API
         [Authorize("update:races")]
         public async Task<IActionResult> UpdateRace(string id, RaceContract contract)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 var result = await _service.UpdateRace(id, contract);
@@ -109,7 +105,6 @@ namespace Api.API
         [Authorize("delete:races")]
         public async Task<IActionResult> DeleteRace(string id)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
@@ -137,7 +132,6 @@ namespace Api.API
         [Authorize("read:races")]
         public async Task<IActionResult> GetSignsOfRace(string raceId, [FromQuery] QueryParameters queryParameters)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
             queryParameters.race_id = raceId;
@@ -150,13 +144,12 @@ namespace Api.API
         [Authorize("create:races")]
         public async Task<IActionResult> AddSignToRace([FromBody] SignContract contract)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
                 var result = await _service.AddSignToRace(contract);
-                return Ok(result);
+                return Ok("Sign added to race");
             }
             catch (Exception ex)
             {
@@ -172,7 +165,6 @@ namespace Api.API
         [Authorize("create:races")]
         public async Task<IActionResult> UpdateSign(string id, [FromBody] SignContract contract)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
@@ -194,13 +186,12 @@ namespace Api.API
         [Authorize("delete:races")]
         public async Task<IActionResult> RemoveSignFromRace(string id)
         {
-            //throw new HttpResponseException((int)HttpStatusCode.NotImplemented, "Function is not yet implemented");
             try
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
                 var result = await _service.RemoveSignFromRace(id);
-                return result ? (IActionResult)Ok("Sign removed") : NotFound();
+                return result ? (IActionResult)Ok("Sign removed from race") : NotFound();
             }
             catch (Exception ex)
             {

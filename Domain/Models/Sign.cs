@@ -32,6 +32,7 @@ namespace Domain.Models
         public string? Notes { get; set; }
         public Guid? RaceId { get; set; }
         public Race? Race { get; set; }
+        //public ICollection<Race>? Races { get; set; }
         public Guid? SignGroupId { get; set; }
         public SignGroup? SignGroup { get; set; }
         public Guid? OrganizationId { get; set; }

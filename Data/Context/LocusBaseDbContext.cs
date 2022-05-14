@@ -1,4 +1,4 @@
-﻿
+﻿    
 using Domain.Models;
 using System;
 using System.IO;
@@ -83,12 +83,12 @@ namespace Infrastructure.Data.Context
                 .HasMany(p => p.Waypoints)
                 .WithOne(p => p.Race)
                 .HasForeignKey(f => f.RaceId)
-                .OnDelete(DeleteBehavior.ClientCascade);
+                .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Race>()
                 .HasMany(p => p.Signs)
                 .WithOne(p => p.Race)
                 .HasForeignKey(f => f.RaceId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+                .OnDelete(DeleteBehavior.SetNull);
             modelBuilder.Entity<Race>()
                 .HasOne(p => p.Organization)
                 .WithMany(b => b.Races)
@@ -105,6 +105,10 @@ namespace Infrastructure.Data.Context
                 .HasOne(p => p.Race)
                 .WithMany(b => b.Waypoints)
                 .HasForeignKey(f => f.RaceId);
+            modelBuilder.Entity<Waypoint>()
+                .HasOne(p => p.Location)
+                .WithOne(b => b.Waypoint)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Sign>()
                 .HasIndex(p => p.Id)
@@ -142,6 +146,10 @@ namespace Infrastructure.Data.Context
                 .WithMany(b => b.Signs)
                 .HasForeignKey(f => f.RaceId)
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Sign>()
+                .HasOne(p => p.Location)
+                .WithOne(b => b.Sign)
+                .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Sign>()
                 .HasOne(p => p.SignType)
                 .WithMany(b => b.Signs)

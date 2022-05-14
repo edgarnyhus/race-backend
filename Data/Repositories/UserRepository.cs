@@ -55,42 +55,6 @@ namespace Infrastructure.Data.Repositories
             _access_token = null;
         }
 
-        private async Task<Token> GetAccessToken()
-        {
-            var clientId = _configuration["Auth0_mgt:clientId"];
-            var clientSecret = _configuration["Auth0_mgt:clientSecret"];
-            var audience = _configuration["Auth0_mgt:audience"];
-            var endpoint = _configuration["Auth0_mgt:endpoint"];
-            var client = new RestClient(endpoint);
-            var request = new RestRequest(Method.POST);
-
-            var data = new Auth0MgtToken()
-            {
-                grant_type = "client_credentials",
-                client_id = clientId,
-                client_secret = clientSecret,
-                audience = audience
-            };
-            var json = JsonConvert.SerializeObject(data, Formatting.None, new JsonSerializerSettings
-            {
-                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                NullValueHandling = NullValueHandling.Ignore,       // Exclude properties set to null from the payload
-                ContractResolver = new DefaultContractResolver
-                {
-                    NamingStrategy = new SnakeCaseNamingStrategy()
-                }
-            });
-            request.AddJsonBody(json);
-            request.AddHeader("content-type", "application/json");
-
-
-            var response = await client.ExecuteAsync(request);
-            if (!response.IsSuccessful)
-                throw new UsersException(response.Content ?? "Unspecified error");
-            var result = JsonConvert.DeserializeObject<Token>(response.Content);
-            _access_token = result.access_token;
-            return result;
-        }
 
         public override async Task<IEnumerable<User>> Find(ISpecification<User> specification)
         {
@@ -140,15 +104,15 @@ namespace Infrastructure.Data.Repositories
             var eaa = new EmailAddressAttribute();
             var findByEmail = eaa.IsValid(id);
 
+            var existingUser = await GetUserFromDb(id);
+            if (existingUser != null)
+                id = existingUser.UserId;
+
             string endpoint;
             if (findByEmail)
                 endpoint = $"{_audience}users-by-email?email={id.ToLower()}";
             else
                 endpoint = $"{_audience}users/{id}";
-
-            //var usr = await GetUserFromDb(id);
-            //if (usr != null)
-            //    id = usr.UserId;
 
             var accessToken = await GetAccessToken();
             var mgtClient = new RestClient(endpoint);
@@ -169,11 +133,13 @@ namespace Infrastructure.Data.Repositories
             else
                 user = JsonConvert.DeserializeObject<User>(response.Content);
 
-            var usr = await GetUserFromDb(user.UserId);
-            user.Id = usr?.Id;
-            user.PhoneNumber = usr?.PhoneNumber;
-            user.OrganizationId = usr?.OrganizationId;
-            user.TenantId = usr?.TenantId;
+            if (existingUser == null)
+                user = await AddUserToDb(user);
+
+            user.Id = existingUser?.Id;
+            user.PhoneNumber = existingUser?.PhoneNumber;
+            user.OrganizationId = existingUser?.OrganizationId;
+            user.TenantId = existingUser?.TenantId;
             return user;
         }
 
@@ -289,9 +255,9 @@ namespace Infrastructure.Data.Repositories
 
         public async Task<bool> Update(string id, User user)
         {
-            var usr = await GetUserFromDb(id);
-            if (usr != null)
-                id = usr.UserId;
+            var existtingUser = await GetUserFromDb(id);
+            if (existtingUser != null)
+                id = existtingUser.UserId;
 
             Guid? tenantId = user.TenantId;
             Guid? organizationId = user.OrganizationId;
@@ -309,7 +275,7 @@ namespace Infrastructure.Data.Repositories
 
             var entity = new User()
             {
-                Id = usr != null ? usr.Id : user.Id,
+                Id = existtingUser != null ? existtingUser.Id : user.Id,
                 Name = user.Name,
                 Nickname = user.Nickname,
                 UserId = user.UserId,
@@ -356,9 +322,9 @@ namespace Infrastructure.Data.Repositories
 
         public async Task<bool> Remove(string id)
         {
-            var usr = await GetUserFromDb(id);
-            if (usr != null)
-                id = usr.UserId;
+            var existtingUser = await GetUserFromDb(id);
+            if (existtingUser != null)
+                id = existtingUser.UserId;
 
             var accessToken = await GetAccessToken();
             var mgtClient = new RestClient($"{_audience}users/{id}");
@@ -381,16 +347,54 @@ namespace Infrastructure.Data.Repositories
                 throw new UsersException(response.Content ?? "Unspecified error");
 
             // Remove user object from our database
-            if (usr != null)
-                await base.Remove(usr);
+            if (existtingUser != null)
+                await base.Remove(existtingUser);
 
             JsonConvert.DeserializeObject<User>(response.Content);
             return response.StatusCode == HttpStatusCode.NoContent;
         }
 
+
         /// 
         /// Misc
         ///
+
+        private async Task<Token> GetAccessToken()
+        {
+            var clientId = _configuration["Auth0_mgt:clientId"];
+            var clientSecret = _configuration["Auth0_mgt:clientSecret"];
+            var audience = _configuration["Auth0_mgt:audience"];
+            var endpoint = _configuration["Auth0_mgt:endpoint"];
+            var client = new RestClient(endpoint);
+            var request = new RestRequest(Method.POST);
+
+            var data = new Auth0MgtToken()
+            {
+                grant_type = "client_credentials",
+                client_id = clientId,
+                client_secret = clientSecret,
+                audience = audience
+            };
+            var json = JsonConvert.SerializeObject(data, Formatting.None, new JsonSerializerSettings
+            {
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                NullValueHandling = NullValueHandling.Ignore,       // Exclude properties set to null from the payload
+                ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = new SnakeCaseNamingStrategy()
+                }
+            });
+            request.AddJsonBody(json);
+            request.AddHeader("content-type", "application/json");
+
+
+            var response = await client.ExecuteAsync(request);
+            if (!response.IsSuccessful)
+                throw new UsersException(response.Content ?? "Unspecified error");
+            var result = JsonConvert.DeserializeObject<Token>(response.Content);
+            _access_token = result.access_token;
+            return result;
+        }
 
         public string GetFullNameFromEmail(string name)
         {
@@ -426,8 +430,6 @@ namespace Infrastructure.Data.Repositories
             return substrings[0];
         }
 
-
-
         public async Task<User> GetUserFromDb(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -460,13 +462,9 @@ namespace Infrastructure.Data.Repositories
             {
                 string id = user.Id != null ? user.Id.ToString() : user.UserId;
                 var existingEntity = await GetUserFromDb(id);
-                //if (usr != null)
-                //    id = usr.UserId;
+                var tenantId = user.TenantId ?? existingEntity?.TenantId;
+                var organizationId = user.OrganizationId ?? existingEntity?.OrganizationId;
 
-                //Guid? tenantId = usr != null ? usr.TenantId : user.TenantId;
-                //Guid? organizationId = usr != null ? usr.OrganizationId : user.OrganizationId;
-                Guid? tenantId = user.TenantId ?? existingEntity?.TenantId;
-                Guid? organizationId = user.OrganizationId ?? existingEntity?.OrganizationId;
                 if (tenantId == null && Guid.TryParse(user.AppMetadata?.TenantId, out Guid tid))
                     tenantId = tid;
                 if (organizationId == null && Guid.TryParse(user.AppMetadata?.OrganizationId, out Guid oid))
@@ -490,8 +488,6 @@ namespace Infrastructure.Data.Repositories
                     entity = await base.Add(entity);
                 else
                 {
-                    //_dbContext.Entry(entity).CurrentValues.SetValues(usr);
-
                     var configuration = new MapperConfiguration(cfg => cfg
                         .CreateMap<Sign, Sign>()
                         .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null)));
@@ -502,9 +498,6 @@ namespace Infrastructure.Data.Repositories
                     _dbContext.Entry(existingEntity.Organization).State = EntityState.Detached;
                     existingEntity.TenantId = entity.TenantId;
                     existingEntity.OrganizationId = entity.OrganizationId;
-
-                    //foreach (var e in _dbContext.ChangeTracker.Entries())
-                    //    _logger.LogInformation("Users update {0}: {1}", e.Entity.GetType().Name, e.State);
                 }
 
                 await _dbContext.SaveChangesAsync();

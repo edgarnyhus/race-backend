@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Configurations>Debug;Release;R</Configurations>
+    <Configurations>R;Debug;Release</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'R|AnyCPU' ">
-    <IntermediateOutputPath>obj\R</IntermediateOutputPath>
+    <IntermediateOutputPath>obj\R\net6.0</IntermediateOutputPath>
     <DebugType></DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\R</OutputPath>
+    <OutputPath>bin\R\net6.0</OutputPath>
     <DefineConstants></DefineConstants>
     <WarningLevel>4</WarningLevel>
     <NoWarn></NoWarn>

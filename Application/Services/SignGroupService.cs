@@ -45,7 +45,6 @@ public class SignGroupService : ISignGroupService
             await tenantValidation.Validate(queryParameters);
 
             var result = await _repository.Find(new GetSighGroupsSpecification(queryParameters));
-            _logger.LogTrace($"GetEquipment: Making query {result}");
 
             var response = _mapper.Map<IEnumerable<SignGroup>, IEnumerable<SignGroupDto>>(result);
             return response;

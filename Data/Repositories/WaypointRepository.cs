@@ -89,9 +89,14 @@ public class WaypointRepository : Repository<Waypoint>, IWaypointRepository
 
     public override async Task<bool> Remove(Guid id)
     {
-        Waypoint entry = await _dbContext.Set<Waypoint>().Where(i => i.Id == id).SingleOrDefaultAsync();
-        if (entry == null) return false;
-        _dbContext.Remove(entry);
+        var entity = await _dbContext.Set<Waypoint>()
+            .Include(i => i.Location)
+            .Where(i => i.Id == id).SingleOrDefaultAsync();
+
+        if (entity == null)
+            return false;
+
+        _dbContext.Remove(entity);
         await _dbContext.SaveChangesAsync();
         return true;
     }

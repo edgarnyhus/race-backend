@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -24,11 +25,12 @@ namespace Domain.Multitenant
 
         public async Task<string?> GetTenantIdentifierAsync()
         {
-            //return await Task.Run(() =>
-            //{
+            return await Task.Run(() =>
+            {
                 var value = _httpContextAccessor.HttpContext?.User.Claims.FirstOrDefault(c => c.Type.EndsWith("email"))
                     ?.Value;
-                
+                Console.WriteLine($"=>>> USER: {value}");
+
                 if (string.IsNullOrEmpty(value))
                 {
                     // Retrieve domainname from claims - domain added to Auth0 Application Client Metadata
@@ -53,7 +55,7 @@ namespace Domain.Multitenant
                 var arr = value.Split(delimiter);
 
                 return arr.Count() < 2 ? null : arr[1];
-            //});
+            });
         }
 
         public async Task<string?> GetUserEmailAddressAsync()

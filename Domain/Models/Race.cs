@@ -9,6 +9,12 @@ namespace Domain.Models
 
    public class Race : EntityBase
     {
+        public Race()
+        {
+            Signs = new HashSet<Sign>();
+            Waypoints = new HashSet<Waypoint>();
+        }
+
         public string? Name { get; set; }
         public string? Notes { get; set; }
         public DateTime? ScheduledAt { get; set; }

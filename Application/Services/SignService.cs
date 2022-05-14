@@ -23,6 +23,7 @@ namespace Application.Services
     {
         private readonly TenantAccessService<Tenant> _tenantAccessService;
         private readonly ISignRepository _repository;
+        private readonly IConfiguration _config;
         private readonly IMapper _mapper;
         private readonly ILogger<SignService> _logger;
         private readonly bool _multitenancy = false;
@@ -33,6 +34,7 @@ namespace Application.Services
         {
             _tenantAccessService = tenantAccessService;
             _repository = (ISignRepository) repository;
+            _config = config;
             _mapper = mapper;
             _logger = logger;
             var value = config["Multitenancy:Enabled"];
@@ -103,7 +105,9 @@ namespace Application.Services
                 // or
                 //Guid.NewGuid().ToString("n")
                 // or
-                var options = new shortid.Configuration.GenerationOptions(true, false, 12);
+                var length = 12;
+                try { length = int.Parse(_config["QrCodeLength"]); } catch {  }
+                var options = new shortid.Configuration.GenerationOptions(true, false, length);
                 entity.QrCode = ShortId.Generate(options).ToUpper();
             }
             entity.State = SignState.Inactive;

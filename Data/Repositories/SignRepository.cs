@@ -69,10 +69,6 @@ namespace Infrastructure.Data.Repositories
         {
             await PropertyChecks.CheckProperties(_dbContext, entity, null);
 
-            //if (IsDevelopment)
-            //    foreach (var ee in _dbContext.ChangeTracker.Entries())
-            //        Console.WriteLine($"{ee.Metadata.Name}, {ee.State}");
-
             entity = await base.Add(entity);
             return entity;
         }
@@ -91,12 +87,10 @@ namespace Infrastructure.Data.Repositories
             Sign existingEntity = null;
             if (Guid.TryParse(id, out Guid guid))
                 existingEntity = await query
-                    .Where(x => x.Id == guid)
-                    .FirstOrDefaultAsync();
+                    .SingleOrDefaultAsync(x => x.Id == guid);
             else
                 existingEntity = await query
-                    .Where(x => x.QrCode == id || (x.Name == id && x.OrganizationId == entity.OrganizationId))
-                    .FirstOrDefaultAsync();
+                    .SingleOrDefaultAsync(x => x.QrCode == id || (x.Name == id && x.OrganizationId == entity.OrganizationId));
 
             if (existingEntity == null)
             {
@@ -110,36 +104,25 @@ namespace Infrastructure.Data.Repositories
             await PropertyChecks.CheckProperties(_dbContext, entity, existingEntity);
             mapper.Map(entity, existingEntity);
 
-            try
-            {
-                if (IsDevelopment)
-                    foreach (var entry in _dbContext.ChangeTracker.Entries())
-                        Console.WriteLine($"{entry.Metadata.Name}, {entry.State}");
-
-                await _dbContext.SaveChangesAsync();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                var error = ex.Message;
-                if (ex.InnerException != null)
-                    error = ex.InnerException.Message;
-                if (error.Contains("IX_Equipment_QrCode"))
-                    Console.WriteLine("IX_Equipment_QrCode");
-                else
-                    Console.WriteLine($"{error}");
-                throw;
-            }
+            await _dbContext.SaveChangesAsync();
+            return true;
         }
 
         public async Task<bool> Remove(string id)
         {
-            var entity = await FindById(id);
+            if (!Guid.TryParse(id, out Guid guid))
+                return false;
+
+            var entity = await _dbContext.Set<Sign>()
+                .Include(i => i.Location)
+                .SingleOrDefaultAsync(x => x.Id == guid);
+
             if (entity == null)
                 return false;
-            var result = _dbContext.Set<Sign>().Remove(entity);
+
+            _dbContext.Remove(entity);
             await _dbContext.SaveChangesAsync();
-            return result != null;
+            return true;
         }
 
 
