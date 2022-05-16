@@ -1,16 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper.Execution;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using NetTopologySuite.Geometries;
 using Domain.Interfaces;
 using Domain.Models;
-using Infrastructure.Data.Repositories.Helpers;
-using Location = Domain.Models.Location;
 using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.Data.Context
@@ -192,11 +186,14 @@ namespace Infrastructure.Data.Context
                     var signs = await context.Signs.ToListAsync();
                     foreach (var sign in signs)
                     {
-                        if (sign.RaceDay == 0 && sign.State != SignState.Discarded)
+                        if (sign.State != SignState.Discarded)
                         {
-                            sign.RaceDay = 1;
-                            context.Signs.Update(sign);
-                            await context.SaveChangesAsync();
+                            if (sign.RaceDay == 0)
+                            {
+                                sign.RaceDay = 1;
+                                context.Signs.Update(sign);
+                                await context.SaveChangesAsync();
+                            }
 
                             for (int raceDay = 2; raceDay <= numberOfRaceDays; raceDay++)
                             {
@@ -204,18 +201,18 @@ namespace Infrastructure.Data.Context
                                     x.QrCode == sign.QrCode && x.RaceDay == raceDay && x.State != SignState.Discarded);
                                 if (item == null)
                                 {
-                                    var newSign = new Sign();
-                                    newSign = sign;
-                                    newSign.Id = null;
-                                    newSign.RaceDay = raceDay;
-                                    newSign.RaceId = null;
-                                    newSign.Location = null;
-                                    newSign.GeoLocation = null;
-                                    newSign.LastScanned = null;
-                                    newSign.LastScannedBy = null;
-                                    newSign.State = SignState.Inactive;
+                                    item = new Sign();
+                                    item = sign;
+                                    item.Id = null;
+                                    item.RaceDay = raceDay;
+                                    item.RaceId = null;
+                                    item.Location = null;
+                                    item.GeoLocation = null;
+                                    item.LastScanned = null;
+                                    item.LastScannedBy = null;
+                                    item.State = SignState.Inactive;
 
-                                    await context.Signs.AddAsync(newSign);
+                                    await context.Signs.AddAsync(item);
                                     await context.SaveChangesAsync();
                                 }
                             }

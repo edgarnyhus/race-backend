@@ -101,12 +101,11 @@ namespace Infrastructure.Data.Repositories
 
         public async Task<User> FindById(string id)
         {
-            var eaa = new EmailAddressAttribute();
-            var findByEmail = eaa.IsValid(id);
-
             var existingUser = await GetUserFromDb(id);
             if (existingUser != null)
                 id = existingUser.UserId;
+            var eaa = new EmailAddressAttribute();
+            var findByEmail = eaa.IsValid(id);
 
             string endpoint;
             if (findByEmail)
