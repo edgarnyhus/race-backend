@@ -45,7 +45,6 @@ namespace Infrastructure.Data.Context
                     .AddJsonFile("config.json")
                     .Build();
                 var connectionString = configuration.GetConnectionString("LocusBasedDbConnection");
-                //Console.WriteLine($"Connectionstring={connectionString}");
                 bool.TryParse(configuration["useMySql"], out bool useMySql);
                 if (useMySql)
                 {
@@ -66,7 +65,6 @@ namespace Infrastructure.Data.Context
                 (c1, c2) => c1.SequenceEqual(c2),
                 c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                 c => c.ToList());
-
 
             base.OnModelCreating(modelBuilder);
             
@@ -121,10 +119,10 @@ namespace Infrastructure.Data.Context
                 .HasMaxLength(512);
             modelBuilder.Entity<Sign>()
                 .Property(p => p.QrCode)
-                .HasMaxLength(20);
-            modelBuilder.Entity<Sign>()
-                .HasIndex(u => u.QrCode)
-                .IsUnique();
+                .HasMaxLength(38);
+            //modelBuilder.Entity<Sign>()
+            //    .HasIndex(u => u.QrCode)
+            //    .IsUnique();
             modelBuilder.Entity<Sign>()
                 .HasOne(p => p.Organization)
                 .WithMany(b => b.Signs)

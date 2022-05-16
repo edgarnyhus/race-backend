@@ -23,6 +23,7 @@ namespace Domain.Models
         public Guid? TenantId { get; set; }
         public string? Name { get; set; }
         public int? SequenceNumber { get; set; } = 1;
+        public int RaceDay { get; set; }
         public Guid? SignTypeId { get; set; }
         public SignType? SignType { get; set; }
         public string? QrCode { get; set; }

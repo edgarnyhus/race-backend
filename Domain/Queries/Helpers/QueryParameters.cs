@@ -21,6 +21,7 @@ namespace Domain.Queries.Helpers
         public string? user_id { get; set; }
         public string? category { get; set; }
         public string? qr_code { get; set; }
+        public string? race_day { get; set; }
         public string? tenant_id { get; set; }
         public string? organization_id { get; set; }
         public string? organization_number { get; set; }

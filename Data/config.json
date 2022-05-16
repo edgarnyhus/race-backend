@@ -1,7 +1,8 @@
 ﻿{
   "ConnectionStrings": {
-    "LocusBasedDbConnection_local": "server=localhost; port=3306; database=getacademy3487; uid=root; pwd=penny9X",
-    "LocusBasedDbConnection": "username=academy; password=NoKj2mhBF0hOA5z8; database=getacademy3487; server=159.223.208.93; port=3306"
+    "LocusBasedDbConnection": "server=localhost; port=3306; database=getacademy3487; uid=root; pwd=penny9X",
+    "LocusBasedDbConnection_": "username=academy; password=NoKj2mhBF0hOA5z8; database=getacademy3487; server=159.223.208.93; port=3306"
   },
-  "useMySql": "true"
+  "UseMySql": true,
+  "NumberOfRaceDays": 4
 }

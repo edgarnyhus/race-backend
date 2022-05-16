@@ -61,6 +61,16 @@ namespace Domain.Specifications
                 AddCriteria(c => c.QrCode == qrCode);
             }
 
+            if (!string.IsNullOrEmpty(parameters.race_day))
+            {
+                try
+                {
+                    var race_day = int.Parse(parameters.race_day);
+                    AddCriteria(c => c.RaceDay == race_day);
+                }
+                catch (Exception) { } 
+            }
+
             if (!string.IsNullOrEmpty(parameters.state))
             {
                 var state = SignState.Unknown;

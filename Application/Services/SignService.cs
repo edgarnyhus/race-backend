@@ -62,11 +62,6 @@ namespace Application.Services
 
         public async Task<SignDto> CreateSign(SignContract contract)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException(
-            //        "Unauthorized. You are missing the necessary permissions to issue this request.");
-
             if (string.IsNullOrEmpty(contract.Name))
                 throw new ArgumentNullException("name");
             if (string.IsNullOrEmpty(contract.SignTypeId))
@@ -83,28 +78,26 @@ namespace Application.Services
                 name = prefix,
                 organization_id = entity.OrganizationId.ToString()
             });
-            IEnumerable<Sign> res = await _repository.Find(spec);
+            IEnumerable<Sign> signs = await _repository.Find(spec);
 
-            Sign existingEntity = res.FirstOrDefault();
-            if (existingEntity != null)
+            int raceDay = 1;
+            foreach (var sign in signs)
             {
-                existingEntity.State = SignState.Discarded;
-                await _repository.Update((Guid)existingEntity.Id, existingEntity);
+                sign.State = SignState.Discarded;
+                if (sign.RaceDay == 1 || sign.RaceId != null)
+                    await _repository.Update(sign.Id.ToString(), sign);
+                else
+                    await _repository.Remove(sign.Id.ToString());
 
-                entity.SequenceNumber = existingEntity.SequenceNumber + 1;
+                entity.SequenceNumber = ++sign.SequenceNumber;
+                entity.RaceDay = raceDay++;
                 Tuple<string, string> t = ComposeName(entity.Name, (int)entity.SequenceNumber);
                 entity.Name = t.Item2;
             }
 
+            // Create an unique QR Code
             if (string.IsNullOrEmpty(entity.QrCode))
             {
-                // Use ticks to generate unique id
-                //var ticks = new DateTime(2016, 1, 1).Ticks;
-                //var ans = DateTime.Now.Ticks - ticks;
-                //var uniqueId = ans.ToString("x");
-                // or
-                //Guid.NewGuid().ToString("n")
-                // or
                 var length = 12;
                 try { length = int.Parse(_config["QrCodeLength"]); } catch {  }
                 var options = new shortid.Configuration.GenerationOptions(true, false, length);
@@ -112,7 +105,19 @@ namespace Application.Services
             }
             entity.State = SignState.Inactive;
 
-            entity = await _repository.Add(entity);
+            // Create the sign plus 'numberOfRaceDays' shadow signs
+            int numberOfRaceDays = 4;
+            try { numberOfRaceDays = int.Parse(_config["NumberOfRaceDays"]); } catch { }
+            for (raceDay = 1; raceDay <= numberOfRaceDays; raceDay++)
+            {
+                var sign = new Sign();
+                sign = entity;
+                sign.Id = null;
+                sign.RaceDay = raceDay;
+                sign = await _repository.Add(entity);
+                if (raceDay == 1)
+                    entity = sign;
+            }
             var result = _mapper.Map<Sign, SignDto>(entity);
 
             return result;
@@ -120,11 +125,6 @@ namespace Application.Services
 
         public async Task<bool> UpdateSign(string id, SignContract contract)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException(
-            //        "Unauthorized. You are missing the necessary permissions to issue this request.");
-
             Tuple<string, Sign> tuple = await UpdateProperties(contract);
 
             var result = await _repository.Update(id, tuple.Item2);
@@ -134,12 +134,27 @@ namespace Application.Services
 
         public async Task<bool> DeleteSign(string id)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException(
-            //        "Unauthorized. You are missing the necessary permissions to issue this request.");
+            bool result = true;
+            QueryParameters queryParameters = new QueryParameters();
+            var tenantValidation = new TenantValidation(_tenantAccessService, _multitenancy);
+            await tenantValidation.Validate(queryParameters);
 
-            var result = await _repository.Remove(id);
+            // Delete the sign plus shadow signs with the same QR Code
+            if (Guid.TryParse(id, out Guid guid))
+            {
+                var sign = await _repository.FindById(id);
+                if (sign == null)
+                    return false;
+                queryParameters.qr_code = sign.QrCode;
+            }
+
+            var spec = new GetSignsSpecification(queryParameters);
+            var signs = await _repository.Find(spec);
+
+            foreach (var item in signs)
+            {
+                result = await _repository.Remove(item.Id.ToString());
+            }
 
             return result;
         }

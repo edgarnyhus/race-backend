@@ -11,16 +11,19 @@ using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure.Data.Repositories.Helpers;
 using Location = Domain.Models.Location;
+using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.Data.Context
 {
     public class DbInitializer : IDbInitializer
     {
         private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IConfiguration _config;
 
-        public DbInitializer(IServiceScopeFactory scopeFactory)
+        public DbInitializer(IServiceScopeFactory scopeFactory, IConfiguration config)
         {
-            this._scopeFactory = scopeFactory;
+            _scopeFactory = scopeFactory;
+            _config = config;
         }
 
         public void Initialize()
@@ -73,8 +76,8 @@ namespace Infrastructure.Data.Context
                         {
                             Id = new Guid("50837eca-3ef5-456f-8799-580c4a4a10fc"),
                             Name = "LocusBase",
+                            Identifier = "locusbase.no",
                             Description = "LocusBase Tenant",
-                            Identifier = "locusbase.no"
                         };
 
                         context.Tenants.Add(locusbase);
@@ -182,6 +185,42 @@ namespace Infrastructure.Data.Context
                         context.SignTypes.Add(signType);
 
                         await context.SaveChangesAsync();
+                    }
+
+                    int numberOfRaceDays = 4;
+                    try { numberOfRaceDays = int.Parse(_config["NumberOfRaceDays"]); } catch { }
+                    var signs = await context.Signs.ToListAsync();
+                    foreach (var sign in signs)
+                    {
+                        if (sign.RaceDay == 0 && sign.State != SignState.Discarded)
+                        {
+                            sign.RaceDay = 1;
+                            context.Signs.Update(sign);
+                            await context.SaveChangesAsync();
+
+                            for (int raceDay = 2; raceDay <= numberOfRaceDays; raceDay++)
+                            {
+                                var item = await context.Signs.FirstOrDefaultAsync(x =>
+                                    x.QrCode == sign.QrCode && x.RaceDay == raceDay && x.State != SignState.Discarded);
+                                if (item == null)
+                                {
+                                    var newSign = new Sign();
+                                    newSign = sign;
+                                    newSign.Id = null;
+                                    newSign.RaceDay = raceDay;
+                                    newSign.RaceId = null;
+                                    newSign.Location = null;
+                                    newSign.GeoLocation = null;
+                                    newSign.LastScanned = null;
+                                    newSign.LastScannedBy = null;
+                                    newSign.State = SignState.Inactive;
+
+                                    await context.Signs.AddAsync(newSign);
+                                    await context.SaveChangesAsync();
+                                }
+                            }
+
+                        }
                     }
                 }
             }

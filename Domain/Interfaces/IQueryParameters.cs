@@ -15,6 +15,7 @@ namespace Domain.Interfaces
         string? user_id { get; set; }
         string? category { get; set; }
         string? qr_code { get; set; }
+        string? race_day { get; set; }
         string? tenant_id { get; set; }
         string? organization_id { get; set; }
         string? organization_number { get; set; }

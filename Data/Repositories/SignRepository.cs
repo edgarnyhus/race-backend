@@ -90,7 +90,7 @@ namespace Infrastructure.Data.Repositories
                     .SingleOrDefaultAsync(x => x.Id == guid);
             else
                 existingEntity = await query
-                    .SingleOrDefaultAsync(x => x.QrCode == id || (x.Name == id && x.OrganizationId == entity.OrganizationId));
+                    .SingleOrDefaultAsync(x => (x.QrCode == id || (x.Name == id && x.OrganizationId == entity.OrganizationId)) && x.RaceDay == entity.RaceDay);
 
             if (existingEntity == null)
             {

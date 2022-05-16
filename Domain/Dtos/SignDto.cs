@@ -12,6 +12,8 @@ namespace Domain.Dtos
         public string? Name { get; set; }
         [JsonProperty("sequence_number")]
         public int? SequenceNumber { get; set; } = 1;
+        [JsonProperty("race:day")]
+        public int RaceDay { get; set; } = 1;
         [JsonProperty("signtype_id")]
         public string SignTypeId { get; set; }
         [JsonProperty("signtype")]

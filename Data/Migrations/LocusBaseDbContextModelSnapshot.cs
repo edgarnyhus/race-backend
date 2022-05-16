@@ -205,8 +205,11 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("char(36)");
 
                     b.Property<string>("QrCode")
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
+                        .HasMaxLength(38)
+                        .HasColumnType("varchar(38)");
+
+                    b.Property<int>("RaceDay")
+                        .HasColumnType("int");
 
                     b.Property<Guid?>("RaceId")
                         .HasColumnType("char(36)");
@@ -233,9 +236,6 @@ namespace Infrastructure.Data.Migrations
                         .IsUnique();
 
                     b.HasIndex("OrganizationId");
-
-                    b.HasIndex("QrCode")
-                        .IsUnique();
 
                     b.HasIndex("RaceId");
 
