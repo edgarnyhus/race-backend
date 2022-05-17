@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Domain.Contracts;
 using Domain.Dtos;
-using Domain.Models;
 using Domain.Queries.Helpers;
 
 namespace Application.Interfaces

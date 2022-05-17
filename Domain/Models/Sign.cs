@@ -1,11 +1,8 @@
-﻿        #nullable enable
+﻿#nullable enable
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using NetTopologySuite.Geometries;
 using Domain.Interfaces;
-using Domain.Models.Helpers;
 
 namespace Domain.Models
 {

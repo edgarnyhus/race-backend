@@ -3,17 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using Domain.Contracts;
-using Domain.Dtos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Domain.Interfaces;
 using Domain.Models;
-using Domain.Queries.Helpers;
 using Infrastructure.Data.Repositories.Helpers;
 using Infrastructure.Data.Context;
-using System.Collections.ObjectModel;
 
 
 namespace Infrastructure.Data.Repositories
@@ -58,9 +53,20 @@ namespace Infrastructure.Data.Repositories
                     .Where(x => x.Id == gid)
                     .FirstOrDefaultAsync();
             else
+            {
+                // QR Code may be on the format '1|UPZYUM70U6VT' where suffix separated by '|' is race day
+                var raceDay = 1;
+                var qrCode = id;
+                var arr = id.Split('|');
+                if (arr.Count() > 1)
+                {
+                    try { raceDay = int.Parse(arr[0]); } catch (Exception) { };
+                    qrCode = arr[1];
+                }
                 result = await query
-                    .Where(x => x.QrCode == id)
-                    .FirstOrDefaultAsync();
+                        .Where(x => x.QrCode == qrCode && x.RaceDay == raceDay)
+                        .FirstOrDefaultAsync();
+            }
 
             return result;
         }
@@ -99,7 +105,6 @@ namespace Infrastructure.Data.Repositories
                 entity = await Add(entity);
                 return entity != null;
             }
-
 
             await PropertyChecks.CheckProperties(_dbContext, entity, existingEntity);
             mapper.Map(entity, existingEntity);

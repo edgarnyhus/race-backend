@@ -1,6 +1,5 @@
 ﻿using System;
 using Domain.Interfaces;
-using Domain.Models;
 
 namespace Domain.Models
 {

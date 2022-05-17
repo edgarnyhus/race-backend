@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -15,7 +16,6 @@ using Domain.Specifications;
 using Microsoft.Extensions.Configuration;
 using shortid;
 using System.Text.RegularExpressions;
-using System.Linq;
 
 namespace Application.Services
 {

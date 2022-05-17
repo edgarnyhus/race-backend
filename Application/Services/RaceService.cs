@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using MediatR;
@@ -16,7 +15,6 @@ using Domain.Multitenant;
 using Domain.Queries.Helpers;
 using Domain.Specifications;
 using Microsoft.AspNetCore.Http;
-using System.Text.RegularExpressions;
 
 namespace Application.Services
 {

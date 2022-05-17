@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Security.Claims;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Auth0.AuthenticationApi;
 using Microsoft.AspNetCore.Http;

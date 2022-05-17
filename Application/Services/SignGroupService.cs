@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Application.Helpers;
 using Application.Interfaces;
@@ -14,8 +13,6 @@ using Domain.Queries.Helpers;
 using Domain.Specifications;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace Application.Services;
 

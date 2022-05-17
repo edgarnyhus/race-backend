@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 using Domain.Interfaces;
 
 namespace Domain.Models
 {
 
-   public class Race : EntityBase
+    public class Race : EntityBase
     {
         public Race()
         {
