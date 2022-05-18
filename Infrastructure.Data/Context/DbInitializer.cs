@@ -184,39 +184,43 @@ namespace Infrastructure.Data.Context
                     int numberOfRaceDays = 4;
                     try { numberOfRaceDays = int.Parse(_config["NumberOfRaceDays"]); } catch { }
                     var signs = await context.Signs.ToListAsync();
-                    foreach (var sign in signs)
+                    var count = signs.FindAll(x => x.Name.StartsWith("1-")).Count();
+                    if (count < 4)
                     {
-                        if (sign.State != SignState.Discarded)
+                        foreach (var sign in signs)
                         {
-                            if (sign.RaceDay == 0)
+                            if (sign.State != SignState.Discarded)
                             {
-                                sign.RaceDay = 1;
-                                context.Signs.Update(sign);
-                                await context.SaveChangesAsync();
-                            }
-
-                            for (int raceDay = 2; raceDay <= numberOfRaceDays; raceDay++)
-                            {
-                                var item = await context.Signs.FirstOrDefaultAsync(x =>
-                                    x.QrCode == sign.QrCode && x.RaceDay == raceDay && x.State != SignState.Discarded);
-                                if (item == null)
+                                if (sign.RaceDay == 0)
                                 {
-                                    item = new Sign();
-                                    item = sign;
-                                    item.Id = null;
-                                    item.RaceDay = raceDay;
-                                    item.RaceId = null;
-                                    item.Location = null;
-                                    item.GeoLocation = null;
-                                    item.LastScanned = null;
-                                    item.LastScannedBy = null;
-                                    item.State = SignState.Inactive;
-
-                                    await context.Signs.AddAsync(item);
+                                    sign.RaceDay = 1;
+                                    context.Signs.Update(sign);
                                     await context.SaveChangesAsync();
                                 }
-                            }
 
+                                for (int raceDay = 2; raceDay <= numberOfRaceDays; raceDay++)
+                                {
+                                    var item = await context.Signs.FirstOrDefaultAsync(x =>
+                                        x.QrCode == sign.QrCode && x.RaceDay == raceDay && x.State != SignState.Discarded);
+                                    if (item == null)
+                                    {
+                                        item = new Sign();
+                                        item = sign;
+                                        item.Id = null;
+                                        item.RaceDay = raceDay;
+                                        item.RaceId = null;
+                                        item.Location = null;
+                                        item.GeoLocation = null;
+                                        item.LastScanned = null;
+                                        item.LastScannedBy = null;
+                                        item.State = SignState.Inactive;
+
+                                        await context.Signs.AddAsync(item);
+                                        await context.SaveChangesAsync();
+                                    }
+                                }
+
+                            }
                         }
                     }
                 }

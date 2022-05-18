@@ -76,7 +76,6 @@ public class WaypointService : IWaypointService
         //        "Unauthorized. You are missing the necessary permissions to issue this request.");
 
         var entity = UpdateProperties(contract);
-        entity.Location.Timestamp = DateTime.UtcNow;
 
         var result = await _repository.Add(entity);
         var response = _mapper.Map<Waypoint, WaypointDto>(result);
@@ -120,6 +119,9 @@ public class WaypointService : IWaypointService
             var arr = path.Split('/');
             entity.RaceId = new Guid(arr[3]);
         }
+
+        if (entity.Location != null && entity.Location.Timestamp == null)
+            entity.Location.Timestamp = DateTime.UtcNow;
 
         return entity;
     }

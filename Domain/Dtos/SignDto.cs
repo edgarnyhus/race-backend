@@ -12,15 +12,15 @@ namespace Domain.Dtos
         public string? Name { get; set; }
         [JsonProperty("sequence_number")]
         public int? SequenceNumber { get; set; } = 1;
+        [JsonProperty("qr_code")]
+        public string? QrCode { get; set; }
+        public SignState? State { get; set; } = SignState.Inactive;
         [JsonProperty("race_day")]
         public int RaceDay { get; set; } = 1;
         [JsonProperty("signtype_id")]
         public string SignTypeId { get; set; }
         [JsonProperty("signtype")]
         public SignTypeDto? SignType { get; set; }
-        [JsonProperty("qr_code")]
-        public string? QrCode { get; set; }
-        public SignState? State { get; set; } = SignState.Inactive;
         public LocationDto? Location { get; set; }
         public string? Notes { get; set; }
         public DateTime? LastScanned { get; set; }

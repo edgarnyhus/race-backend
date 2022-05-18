@@ -216,10 +216,16 @@ namespace Application.Services
                     entity.OrganizationId = oid;
             }
 
-            Tuple<string, string> res = ComposeName(entity.Name, (int)entity.SequenceNumber);
-            entity.Name = res.Item2;
+            if (entity.Location != null && entity.Location.Timestamp == null)
+                entity.Location.Timestamp = DateTime.UtcNow;
 
-            return new Tuple<string, Sign>(res.Item1, entity);
+            if (!string.IsNullOrEmpty(entity.Name))
+            {
+                Tuple<string, string> res = ComposeName(entity.Name, (int)entity.SequenceNumber);
+                entity.Name = res.Item2;
+            }
+
+            return new Tuple<string, Sign>(entity.Name, entity);
         }
     }
 }

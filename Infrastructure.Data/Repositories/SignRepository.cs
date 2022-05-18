@@ -27,13 +27,8 @@ namespace Infrastructure.Data.Repositories
 
         public override async Task<IEnumerable<Sign>> Find(ISpecification<Sign> specification)
         {
-            var count = _dbContext.Set<Sign>().Count();
-            var r = await _dbContext.Set<Sign>()
-                .Include(i => i.SignType)
-                .AsNoTracking()
-                .ToListAsync();
-
             var query = _dbContext.Set<Sign>()
+                .Include(i => i.Location)
                 .Include(i => i.SignType)
                 .AsNoTracking();
 
@@ -44,6 +39,7 @@ namespace Infrastructure.Data.Repositories
         public async Task<Sign> FindById(string id)
         {
             var query = _dbContext.Set<Sign>()
+                .Include(i => i.Location)
                 .Include(i => i.SignType)
                 .AsNoTracking();
 
