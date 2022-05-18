@@ -185,7 +185,7 @@ namespace Infrastructure.Data.Context
                     try { numberOfRaceDays = int.Parse(_config["NumberOfRaceDays"]); } catch { }
                     var signs = await context.Signs.ToListAsync();
                     var count = signs.FindAll(x => x.Name.StartsWith("1-")).Count();
-                    if (count < 4)
+                    if (count < numberOfRaceDays)
                     {
                         foreach (var sign in signs)
                         {
