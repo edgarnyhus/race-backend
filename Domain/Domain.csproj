@@ -48,8 +48,4 @@
     <Folder Include="Specifications\Helpers\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="Config\Actuators\ActuatorTypes.cs" />
-  </ItemGroup>
-
 </Project>

@@ -13,7 +13,6 @@ using Application.Interfaces;
 using Domain.Contracts;
 using Domain.Dtos;
 using Domain.Queries.Helpers;
-using RestSharp;
 
 namespace Api.API
 {

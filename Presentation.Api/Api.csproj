@@ -48,8 +48,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Data\Data.csproj" />
-    <ProjectReference Include="..\IoC\IoC.csproj" />
+    <ProjectReference Include="..\Infrastructure.Data\Data.csproj" />
+    <ProjectReference Include="..\Infrastructure.IoC\IoC.csproj" />
     <ProjectReference Include="..\Application\Application.csproj" />
   </ItemGroup>
 
