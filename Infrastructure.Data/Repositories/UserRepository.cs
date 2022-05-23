@@ -89,8 +89,8 @@ namespace Infrastructure.Data.Repositories
                     user.UserId = user.Identities[0].UserId;
                 var usr = await AddUserToDb(user);
                 user.Id = usr?.Id;
-                user.TenantId = usr?.TenantId;
-                user.OrganizationId = usr?.OrganizationId;
+                user.TenantId = usr?.TenantId ?? user.TenantId;
+                user.OrganizationId = usr?.OrganizationId ?? user.OrganizationId;
                 user.PhoneNumber = usr?.PhoneNumber;
             }
 
@@ -531,6 +531,8 @@ namespace Infrastructure.Data.Repositories
 
         public async Task<IEnumerable<Role>> GetUserRoles(string id)
         {
+            id = await CheckUserId(id);
+
             var accessToken = await GetAccessToken();
             var mgtClient = new RestClient($"{_audience}users/{id}/roles");
             var request = new RestRequest(Method.GET);
@@ -546,6 +548,8 @@ namespace Infrastructure.Data.Repositories
 
         public async Task<bool> SetUserRoles(string id, AppMetadata role)
         {
+            id = await CheckUserId(id);
+
             var accessToken = _access_token;
             if (accessToken == null)
             {
@@ -576,6 +580,9 @@ namespace Infrastructure.Data.Repositories
 
         public async Task<bool> DeleteUserRoles(string id, AppMetadata role)
         {
+
+            id = await CheckUserId(id);
+
             var accessToken = await GetAccessToken();
             var mgtClient = new RestClient($"{_audience}users/{id}/roles");
             var request = new RestRequest(Method.DELETE);
@@ -612,6 +619,14 @@ namespace Infrastructure.Data.Repositories
                 throw new UsersException(response.Content ?? "Unspecified error");
 
             return response.Content;
+        }
+
+
+        private async Task<string> CheckUserId(string id)
+        {
+            var user = await GetUserFromDb(id);
+            var userId = user?.UserId ?? id;
+            return userId;
         }
     }
 }

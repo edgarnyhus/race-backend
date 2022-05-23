@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Serilog;
 
 namespace Api
@@ -27,7 +23,7 @@ namespace Api
 
             try
             {
-                Log.Information("Race API starting...");
+                Log.Information("LocusBase API starting...");
                 
                 var hostBuilder = CreateHostBuilder(args).Build();
 
@@ -38,7 +34,7 @@ namespace Api
             }
             catch (Exception e)
             {
-                Log.Fatal(e, "A fatal error occured. Race API is shutting down.");
+                Log.Fatal(e, "A fatal error occured. LocusBase API is shutting down.");
             }
             finally
             {

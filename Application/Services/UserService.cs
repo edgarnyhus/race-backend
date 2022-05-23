@@ -14,6 +14,9 @@ using Domain.Models;
 using Domain.Multitenant;
 using Domain.Queries.Helpers;
 using Domain.Specifications;
+using System.ComponentModel.DataAnnotations;
+using System.Net.Mail;
+using System;
 
 namespace Application.Services
 {
@@ -65,6 +68,10 @@ namespace Application.Services
             //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
 
             var entity = await UpdateProperties(contract);
+            var ma = new MailAddress(entity.Email);
+            if (ma.Host == "gmail.com" || ma.Host == "hotmail.com" || ma.Host == "outlook.com")
+                throw new ArgumentException("Invalid email address. Choose an email address with a doamin name that matches a domain in the user's Organization.Identifier list.");
+
             var result = await _repository.Add(entity);
             var response = _mapper.Map<User, UserDto>(result);
             return response;

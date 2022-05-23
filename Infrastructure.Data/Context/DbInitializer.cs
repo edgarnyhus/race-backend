@@ -49,19 +49,19 @@ namespace Infrastructure.Data.Context
             {
                 using (var context = serviceScope.ServiceProvider.GetService<LocusBaseDbContext>())
                 {
-                    var vink = await context.Tenants.FirstOrDefaultAsync(x => x.Name.StartsWith("Vink"));
-                    if (vink == null)
-                    {
-                        vink = new Tenant()
-                        {
-                            Id = new Guid("843c0cfa-dacf-46d8-8a89-20d66e107cca"),
-                            Name = "Vink",
-                            Description = "Vink Tenant",
-                            Identifier = "vink-kort.no"
-                        };
+                    //var vink = await context.Tenants.FirstOrDefaultAsync(x => x.Name.StartsWith("Vink"));
+                    //if (vink == null)
+                    //{
+                    //    vink = new Tenant()
+                    //    {
+                    //        Id = new Guid("843c0cfa-dacf-46d8-8a89-20d66e107cca"),
+                    //        Name = "Vink",
+                    //        Description = "Vink Tenant",
+                    //        Identifier = "vink-kort.no"
+                    //    };
 
-                        context.Tenants.Add(vink);
-                    }
+                    //    context.Tenants.Add(vink);
+                    //}
 
                     var locusbase = await context.Tenants.FirstOrDefaultAsync(x => x.Name.StartsWith("Locus"));
                     if (locusbase == null)
@@ -78,30 +78,30 @@ namespace Infrastructure.Data.Context
                     }
                     await context.SaveChangesAsync();
 
-                    var organization = await context.Organizations.FirstOrDefaultAsync(x => x.Name.StartsWith("Vink"));
-                    if (organization == null)
-                    {
-                        organization = new Organization()
-                        {
-                            Id = new Guid("a471808d-4dc8-4b3a-88c9-ad7e5b24ed9a"),
-                            Name = "Vink AS",
-                            Identifier = "vink-kort.no",
-                            Level = 0,
-                            TenantId = new Guid("843c0cfa-dacf-46d8-8a89-20d66e107cca")
-                        };
+                    //var organization = await context.Organizations.FirstOrDefaultAsync(x => x.Name.StartsWith("Vink"));
+                    //if (organization == null)
+                    //{
+                    //    organization = new Organization()
+                    //    {
+                    //        Id = new Guid("a471808d-4dc8-4b3a-88c9-ad7e5b24ed9a"),
+                    //        Name = "Vink AS",
+                    //        Identifier = "vink-kort.no",
+                    //        Level = 0,
+                    //        TenantId = new Guid("843c0cfa-dacf-46d8-8a89-20d66e107cca")
+                    //    };
 
-                        context.Organizations.Add(organization);
-                        vink.Children.Add(organization);
-                    }
+                    //    context.Organizations.Add(organization);
+                    //    vink.Children.Add(organization);
+                    //}
 
-                    organization = await context.Organizations.FirstOrDefaultAsync(x => x.Name.StartsWith("Locus"));
+                    var organization = await context.Organizations.FirstOrDefaultAsync(x => x.Name.StartsWith("Locus"));
                     if (organization == null)
                     {
                         organization = new Organization()
                         {
                             Id = new Guid("9e6af333-68df-4328-afd2-83f234b0aeed"),
                             Name = "LocusBase AS",
-                            Identifier = "locusbase.no",
+                            Identifier = "locusbase.no,vink-kort.no,getacademy.no",
                             Level = 0,
                             TenantId = new Guid("50837eca-3ef5-456f-8799-580c4a4a10fc")
                         };
@@ -180,6 +180,8 @@ namespace Infrastructure.Data.Context
 
                         await context.SaveChangesAsync();
                     }
+
+                    // Duplicate signs - one sign per race day
 
                     int numberOfRaceDays = 4;
                     try { numberOfRaceDays = int.Parse(_config["NumberOfRaceDays"]); } catch { }
