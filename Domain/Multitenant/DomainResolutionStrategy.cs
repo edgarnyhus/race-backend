@@ -27,7 +27,6 @@ namespace Domain.Multitenant
             {
                 var value = _httpContextAccessor.HttpContext?.User.Claims.FirstOrDefault(c => c.Type.EndsWith("email"))
                     ?.Value;
-                Console.WriteLine($"=>>> USER: {value}");
 
                 if (string.IsNullOrEmpty(value))
                 {

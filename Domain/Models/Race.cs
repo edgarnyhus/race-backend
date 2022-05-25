@@ -15,6 +15,7 @@ namespace Domain.Models
         }
 
         public string? Name { get; set; }
+        public int RaceDay { get; set; }
         public string? Notes { get; set; }
         public DateTime? ScheduledAt { get; set; }
         public string? CreatedBy { get; set; }

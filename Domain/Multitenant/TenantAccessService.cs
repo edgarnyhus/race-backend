@@ -61,6 +61,29 @@ namespace Domain.Multitenant
             return path;
         }
 
+        public string GetRaceIdFromRequestPath()
+        {
+            try
+            {
+                // Get RaceId from request path - api/races/{race_id}/signs
+
+                var path = _tenantResolutionStrategy.GetRequestPath();
+                var arr = path.Split('/');
+                var raceId = arr.First<string>(x => IsValidGuid(x));
+                return raceId;
+            }
+            catch (Exception)
+            {
+                throw new ArgumentException("Invalid race_id in request path.");
+            }
+        }
+
+        public bool IsValidGuid(string str)
+        {
+            var isValid = Guid.TryParse(str, out _);
+            return isValid;
+        }
+
         public async Task<bool> IsAdministrator()
         {
             if (await IsGlobalAdministrator())

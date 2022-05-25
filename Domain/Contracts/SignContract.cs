@@ -15,7 +15,7 @@ namespace Domain.Contracts
         public string? QrCode { get; set; }
         public SignState? State { get; set; } = SignState.Inactive;
         [JsonProperty("race_day")]
-        public int RaceDay { get; set; } = 1;
+        public int RaceDay { get; set; }
         [JsonProperty("signtype_id")]
         public string? SignTypeId { get; set; }
         public LocationContract? Location { get; set; }

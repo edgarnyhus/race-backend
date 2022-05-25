@@ -63,10 +63,6 @@ namespace Application.Services
 
         public async Task<UserDto> CreateUser(UserContract contract)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
             var entity = await UpdateProperties(contract);
             var ma = new MailAddress(entity.Email);
             if (ma.Host == "gmail.com" || ma.Host == "hotmail.com" || ma.Host == "outlook.com")
@@ -79,10 +75,6 @@ namespace Application.Services
 
         public async Task<bool> UpdateUser(string id, UserContract contract)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
             var entity = await UpdateProperties(contract);
             var result = await _repository.Update(id, entity);
             return result;
@@ -90,10 +82,6 @@ namespace Application.Services
 
         public async Task<bool> DeleteUser(string id)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
             var result = await _repository.Remove(id);
             return result;
         }
@@ -142,10 +130,6 @@ namespace Application.Services
        
         public async Task<bool> SetUserRoles(string id, AppMetadataDto metadata)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
             var data = _mapper.Map<AppMetadataDto, AppMetadata> (metadata);
             var result = await _repository.SetUserRoles(id, data);
             return result;
@@ -154,10 +138,6 @@ namespace Application.Services
 
         public async Task<bool> DeleteUserRoles(string id, AppMetadataDto metadata)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
             var data = _mapper.Map<AppMetadataDto, AppMetadata>(metadata);
             var result = await _repository.DeleteUserRoles(id, data);
             return result;

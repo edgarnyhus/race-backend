@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
-using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Application.Helpers;
@@ -21,25 +21,20 @@ namespace Application.Services
     public class RaceService : IRaceService
     {
 
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        //private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly TenantAccessService<Tenant> _tenantAccessService;
         private readonly IRaceRepository _repository;
-        private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
-        private readonly IMediator _mediator;
         private readonly ILogger<Race> _logger;
         private readonly bool _multitenancy = false;
 
         public RaceService(IHttpContextAccessor httpContextAccessor, TenantAccessService<Tenant> tenantAccessService,
-            IRepository<Race> repository, IRepository<User> userRepository, 
-            IMapper mapper, IMediator mediator, ILogger<Race> logger, IConfiguration config)
+            IRepository<Race> repository, IMapper mapper, ILogger<Race> logger, IConfiguration config)
         {
-            _httpContextAccessor = httpContextAccessor;
+            //_httpContextAccessor = httpContextAccessor;
             _tenantAccessService = tenantAccessService;
             _repository = (IRaceRepository)repository;
-            _userRepository = (IUserRepository) userRepository;
             _mapper = mapper;
-            _mediator = mediator;
             _logger = logger;
             var value = config["Multitenancy:Enabled"];
             bool.TryParse(value, out _multitenancy);
@@ -67,10 +62,6 @@ namespace Application.Services
 
         public async Task<RaceDto> CreateRace(RaceContract contract)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
             var entity = await UpdateProperties(contract);
             if (entity.CreatedAt == null)
                 entity.CreatedAt = DateTime.UtcNow;
@@ -87,10 +78,6 @@ namespace Application.Services
  
         public async Task<bool> UpdateRace(string id, RaceContract contract)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
             var entity = await UpdateProperties(contract);
 
             Guid.TryParse(id, out Guid guid);
@@ -102,10 +89,6 @@ namespace Application.Services
 
         public async Task<bool> DeleteRace(string id)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
             Guid.TryParse(id, out Guid guid);
             var result = await _repository.Remove(guid);
 
@@ -148,10 +131,8 @@ namespace Application.Services
             var tenantValidation = new TenantValidation(_tenantAccessService, _multitenancy);
             await tenantValidation.Validate(queryParameters);
 
-            // Get RaceId from request path
-            var path = _httpContextAccessor.HttpContext.Request.Path.Value;
-            var arr = path.Split('/');
-            queryParameters.race_id = arr[3];
+            // Ensure that the race_id is correct
+            _tenantAccessService.GetRaceIdFromRequestPath();
 
             var result = await _repository.GetSignsOfRace(new GetSignsSpecification(queryParameters));
             var response = _mapper.Map<IEnumerable<Sign>, IEnumerable<SignDto>>(result);
@@ -161,15 +142,9 @@ namespace Application.Services
 
         public async Task<bool> AddSignToRace(SignContract contract)
         {
-            var entity = _mapper.Map<SignContract, Sign>(contract);
+            var entity = await UpdateSignProperties(contract);
+
             entity.Location.Timestamp = DateTime.UtcNow;
-            if (entity.RaceId == null)
-            {
-                // Get RaceId from request path - api/races/{race_id}/waypoints
-                var path = _httpContextAccessor.HttpContext.Request.Path.Value;
-                var arr = path.Split('/');
-                entity.RaceId = new Guid(arr[3]);
-            }
 
             var result = await _repository.AddSignToRace(entity);
             return result;
@@ -177,14 +152,7 @@ namespace Application.Services
 
         public async Task<bool> UpdateSignInRace(string id, SignContract contract)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException(
-            //        "Unauthorized. You are missing the necessary permissions to issue this request.");
-
             var entity = await UpdateSignProperties(contract);
-            if (entity.Location == null)
-                throw new ArgumentNullException("location");
 
             var result = await _repository.UpdateSignInRace(id, entity);
             return result;
@@ -209,6 +177,20 @@ namespace Application.Services
 
             var entity = _mapper.Map<SignContract, Sign>(contract);
 
+            if (entity.Location == null)
+                throw new ArgumentNullException("location");
+
+            if (entity.RaceId == null)
+                entity.RaceId = new Guid(_tenantAccessService.GetRaceIdFromRequestPath());
+
+            var race = await _repository.FindById((Guid)entity.RaceId);
+            if (race == null)
+                throw new ArgumentException($"Invalid request. Race with id {entity.RaceId} does not exists.");
+            if (entity.RaceDay == 0)
+                throw new ArgumentException("Invalid request. The property race_day must be set.");
+            if (race.RaceDay != entity.RaceDay)
+                throw new ArgumentException("Invalid request. Mismatch between race.race_day and sign.race_day.");
+
             if (entity.TenantId == null)
             {
                 if (Guid.TryParse(parameters.tenant_id, out Guid tid))
@@ -221,16 +203,7 @@ namespace Application.Services
                     entity.OrganizationId = oid;
             }
 
-            if (entity.RaceId == null)
-            {
-                // Get RaceId from request path - api/races/{race_id}/waypoints
-                var path = _httpContextAccessor.HttpContext.Request.Path.Value;
-                var arr = path.Split('/');
-                entity.RaceId = new Guid(arr[3]);
-            }
-
             return entity;
         }
-
     }
 }

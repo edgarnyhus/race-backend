@@ -77,7 +77,7 @@ namespace Api.API
                 var error = ex.Message;
                 if (ex.InnerException != null)
                     error = ex.InnerException.Message;
-                throw new HttpResponseException((int)HttpStatusCode.Conflict, error);
+                throw new HttpResponseException((int)HttpStatusCode.BadRequest, error);
             }
         }
 
@@ -98,7 +98,7 @@ namespace Api.API
                 var error = ex.Message;
                 if (ex.InnerException != null)
                     error = ex.InnerException.Message;
-                throw new HttpResponseException((int)HttpStatusCode.Conflict, error);
+                throw new HttpResponseException((int)HttpStatusCode.BadRequest, error);
             }
         }
 
@@ -117,7 +117,7 @@ namespace Api.API
                 var error = ex.Message;
                 if (ex.InnerException != null)
                     error = ex.InnerException.Message;
-                throw new HttpResponseException((int)HttpStatusCode.Conflict, error);
+                throw new HttpResponseException((int)HttpStatusCode.BadRequest, error);
             }
         }
     }

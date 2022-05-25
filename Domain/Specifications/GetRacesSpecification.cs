@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore;
 using Domain.Interfaces;
 using Domain.Models;
 
@@ -15,12 +16,20 @@ namespace Domain.Specifications
         {
             if (parameters.multitenancy)
             {
-                if (Guid.TryParse(parameters.tenant_id, out Guid tenantId))
-                    AddCriteria(c => c.TenantId == tenantId);
+                Guid.TryParse(parameters.tenant_id, out Guid tenantId);
+                AddCriteria(c => c.TenantId == tenantId);
             }
 
             if (Guid.TryParse(parameters.organization_id, out Guid id))
                 AddCriteria(c => c.OrganizationId == id);
+
+            if (!string.IsNullOrEmpty(parameters.scheduled_at))
+            {
+                var date = DateTimeOffset.Parse(parameters.scheduled_at);
+                //AddCriteria(c => EF.Functions.DateDiffDay(c.ScheduledAt, date) == 0);
+                AddCriteria(c => c.ScheduledAt != null &&
+                    c.ScheduledAt.Value.Day == date.Day && c.ScheduledAt.Value.Month == date.Month && c.ScheduledAt.Value.Year == date.Year);
+            }
 
             if (parameters.page_size > 0)
             {

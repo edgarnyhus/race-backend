@@ -15,8 +15,8 @@ namespace Domain.Specifications
 
         public GetWaypointsSpecification(IQueryParameters parameters) : base(parameters)
         {
-            if (Guid.TryParse(parameters.race_id, out Guid id))
-                AddCriteria(c => c.RaceId == id);
+            Guid.TryParse(parameters.race_id, out Guid id);
+            AddCriteria(c => c.RaceId == id);
 
             if (parameters.page_size > 0)
             {

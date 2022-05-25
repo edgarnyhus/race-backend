@@ -70,11 +70,6 @@ public class WaypointService : IWaypointService
 
     public async Task<WaypointDto> CreateWaypoint(WaypointContract contract)
     {
-        //var isAdmin = await _tenantAccessService.IsAdministrator();
-        //if (_multitenancy && !isAdmin)
-        //    throw new UnauthorizedAccessException(
-        //        "Unauthorized. You are missing the necessary permissions to issue this request.");
-
         var entity = UpdateProperties(contract);
 
         var result = await _repository.Add(entity);
@@ -84,11 +79,6 @@ public class WaypointService : IWaypointService
 
     public async Task<bool> UpdateWaypoint(string id, WaypointContract contract)
     {
-        //var isAdmin = await _tenantAccessService.IsAdministrator();
-        //if (_multitenancy && !isAdmin)
-        //    throw new UnauthorizedAccessException(
-        //        "Unauthorized. You are missing the necessary permissions to issue this request.");
-
         var entity = UpdateProperties(contract);
 
         Guid.TryParse(id, out Guid guid);
@@ -98,11 +88,6 @@ public class WaypointService : IWaypointService
 
     public async Task<bool> DeleteWaypoint(string id)
     {
-        //var isAdmin = await _tenantAccessService.IsAdministrator();
-        //if (_multitenancy && !isAdmin)
-        //    throw new UnauthorizedAccessException(
-        //        "Unauthorized. You are missing the necessary permissions to issue this request.");
-
         Guid.TryParse(id, out Guid guid);
         var result = await _repository.Remove(guid);
         return result;
@@ -113,12 +98,7 @@ public class WaypointService : IWaypointService
         var entity = _mapper.Map<WaypointContract, Waypoint>(contract);
 
         if (entity.RaceId == null)
-        {
-            // Get RaceId from request path - api/races/{race_id}/waypoints
-            var path = _httpContextAccessor.HttpContext.Request.Path.Value;
-            var arr = path.Split('/');
-            entity.RaceId = new Guid(arr[3]);
-        }
+            entity.RaceId = new Guid(_tenantAccessService.GetRaceIdFromRequestPath());
 
         if (entity.Location != null && entity.Location.Timestamp == null)
             entity.Location.Timestamp = DateTime.UtcNow;

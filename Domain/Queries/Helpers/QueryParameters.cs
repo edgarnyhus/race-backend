@@ -31,6 +31,7 @@ namespace Domain.Queries.Helpers
         public string? race_id { get; set; }
         public string? signtype_id { get; set; }
         public string? signgroup_id { get; set; }
+        public string? scheduled_at { get; set; }
 
         // Paging      
         public int max_page_size { get; set; }

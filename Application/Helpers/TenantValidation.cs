@@ -31,9 +31,9 @@ namespace Application.Helpers
                 var tenant = await _tenantAccessService.GetTenantAsync();
                 if (tenant != null)
                 {
-                    parameters.tenant_id = tenant.TenantId.ToString();
+                    parameters.tenant_id = tenant.TenantId?.ToString() ?? null;
                     if (string.IsNullOrEmpty(parameters.organization_id))
-                        parameters.organization_id = tenant.OrganizationId.ToString();
+                        parameters.organization_id = tenant.OrganizationId?.ToString() ?? null;
                 }
                 if (!string.IsNullOrEmpty(parameters.organization_id))
                 {

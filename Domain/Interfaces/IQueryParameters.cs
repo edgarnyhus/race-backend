@@ -25,6 +25,7 @@ namespace Domain.Interfaces
         string? race_id { get; set; }
         string? signtype_id { get; set; }
         string? signgroup_id { get; set; }
+        string? scheduled_at { get; set; }
 
         // Paging      
         int page { get; set; }

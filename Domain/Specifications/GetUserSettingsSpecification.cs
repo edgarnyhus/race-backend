@@ -15,8 +15,8 @@ namespace Domain.Specifications
         {
             if (!string.IsNullOrEmpty(parameters.user_id))
             {
-                if (Guid.TryParse(parameters.user_id, out Guid userId))
-                    AddCriteria(us => us.UserId == userId);
+                Guid.TryParse(parameters.user_id, out Guid userId);
+                AddCriteria(us => us.UserId == userId);
             }
 
             if (parameters.page_size > 0)

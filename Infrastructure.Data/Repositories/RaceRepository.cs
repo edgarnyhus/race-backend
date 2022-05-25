@@ -169,9 +169,11 @@ namespace Infrastructure.Data.Repositories
                 .FirstOrDefaultAsync();
 
             if (sign == null)
-                throw new ArgumentException("Invalid request. A sign with the given Id does not exists!");
+                throw new ArgumentException("Invalid request. A sign with the given Id does not exist.");
             if (entity.RaceId == null)
-                throw new ArgumentException("Invalid request. A race withh the specified race_id does not exists!");
+                throw new ArgumentException("Invalid request. A race withh the specified race_id does not exist.");
+            if (sign.RaceDay != entity.RaceDay)
+                throw new ArgumentException("Invalid property (race_day).");
 
             await PropertyChecks.CheckProperties(_dbContext, entity, sign);
             sign.RaceId = entity.RaceId;
@@ -193,12 +195,23 @@ namespace Infrastructure.Data.Repositories
             Sign existingEntity = null;
             if (Guid.TryParse(id, out Guid guid))
                 existingEntity = await query
-                    .Where(x => x.Id == guid)
-                    .FirstOrDefaultAsync();
+                    .SingleOrDefaultAsync(x => x.Id == guid);
             else
+            {
+                // QR Code may be on the format '1|UPZYUM70U6VT' where suffix separated by '|' is race day
+                var raceDay = entity.RaceDay;
+                var qrCode = id;
+                var arr = id.Split('|');
+                if (arr.Count() > 1)
+                {
+                    try { raceDay = int.Parse(arr[0]); } catch (Exception) { };
+                    if (raceDay != entity.RaceDay)
+                        throw new ArgumentException("Mismatch between sign.race_day and id (<race_day>|<qr_code>).");
+                    qrCode = arr[1];
+                }
                 existingEntity = await query
-                    .Where(x => x.QrCode == id || (x.Name == id && x.OrganizationId == entity.OrganizationId))
-                    .FirstOrDefaultAsync();
+                    .SingleOrDefaultAsync(x => x.QrCode == qrCode && x.RaceDay == entity.RaceDay);
+            }
 
             if (existingEntity == null)
             {
@@ -207,6 +220,9 @@ namespace Infrastructure.Data.Repositories
                 var sign = await AddSignToRace(entity);
                 return sign != null;
             }
+
+            if (existingEntity.RaceDay != entity.RaceDay)
+                throw new ArgumentException("Invalid property (race_day).");
 
             await PropertyChecks.CheckProperties(_dbContext, entity, existingEntity);
             mapper.Map(entity, existingEntity);
@@ -227,9 +243,20 @@ namespace Infrastructure.Data.Repositories
                     .Where(x => x.Id == guid)
                     .FirstOrDefaultAsync();
             else
+            {
+                // QR Code may be on the format '1|UPZYUM70U6VT' where suffix separated by '|' is race day
+                var raceDay = 1;
+                var qrCode = id;
+                var arr = id.Split('|');
+                if (arr.Count() > 1)
+                {
+                    try { raceDay = int.Parse(arr[0]); } catch (Exception) { };
+                    qrCode = arr[1];
+                }
                 entity = await query
-                    .Where(x => x.QrCode == id)
-                    .FirstOrDefaultAsync();
+                        .Where(x => x.QrCode == qrCode && x.RaceDay == raceDay)
+                        .FirstOrDefaultAsync();
+            }
 
             if (entity == null)
                 return false;

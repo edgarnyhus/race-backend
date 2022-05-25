@@ -46,8 +46,7 @@ namespace Infrastructure.Data.Repositories
             Sign result = null;
             if (Guid.TryParse(id, out Guid gid))
                 result = await query
-                    .Where(x => x.Id == gid)
-                    .FirstOrDefaultAsync();
+                    .SingleOrDefaultAsync(x => x.Id == gid);
             else
             {
                 // QR Code may be on the format '1|UPZYUM70U6VT' where suffix separated by '|' is race day
@@ -60,8 +59,7 @@ namespace Infrastructure.Data.Repositories
                     qrCode = arr[1];
                 }
                 result = await query
-                        .Where(x => x.QrCode == qrCode && x.RaceDay == raceDay)
-                        .FirstOrDefaultAsync();
+                    .SingleOrDefaultAsync(x => x.QrCode == qrCode && x.RaceDay == raceDay);
             }
 
             return result;
@@ -91,8 +89,21 @@ namespace Infrastructure.Data.Repositories
                 existingEntity = await query
                     .SingleOrDefaultAsync(x => x.Id == guid);
             else
+            {
+                // QR Code may be on the format '1|UPZYUM70U6VT' where suffix separated by '|' is race day
+                var raceDay = entity.RaceDay;
+                var qrCode = id;
+                var arr = id.Split('|');
+                if (arr.Count() > 1)
+                {
+                    try { raceDay = int.Parse(arr[0]); } catch (Exception) { };
+                    if (raceDay != entity.RaceDay)
+                        throw new ArgumentException("race_day mismatch between sign.race_day and id (<race_day>|<qr_code>).");
+                    qrCode = arr[1];
+                }
                 existingEntity = await query
-                    .SingleOrDefaultAsync(x => (x.QrCode == id || (x.Name == id && x.OrganizationId == entity.OrganizationId)) && x.RaceDay == entity.RaceDay);
+                    .SingleOrDefaultAsync(x => x.QrCode == qrCode && x.RaceDay == entity.RaceDay);
+            }
 
             if (existingEntity == null)
             {
@@ -101,6 +112,9 @@ namespace Infrastructure.Data.Repositories
                 entity = await Add(entity);
                 return entity != null;
             }
+
+            if (existingEntity.RaceDay != entity.RaceDay)
+                throw new ArgumentException("Invalid property (race_day).");
 
             await PropertyChecks.CheckProperties(_dbContext, entity, existingEntity);
             mapper.Map(entity, existingEntity);

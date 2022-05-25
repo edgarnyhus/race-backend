@@ -75,7 +75,7 @@ namespace Api.API
                 var error = ex.Message;
                 if (ex.InnerException != null)
                     error = ex.InnerException.Message;
-                throw new HttpResponseException((int)HttpStatusCode.Conflict, error);
+                throw new HttpResponseException((int)HttpStatusCode.BadRequest, error);
             }
         }
 
@@ -127,19 +127,40 @@ namespace Api.API
         // {race_id}/signs
         //
 
-        // GET: api/races/{id}/waypoints
+        // GET: api/races/{id}/signs
         [HttpGet("{raceId}/signs")]
         [Authorize("read:races")]
         public async Task<IActionResult> GetSignsOfRace(string raceId, [FromQuery] QueryParameters queryParameters)
         {
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
-            queryParameters.race_id = raceId;
-            var result = await _service.GetSignsOfRace(queryParameters);
-            return Ok(result);
+            try
+            {
+                queryParameters.race_id = raceId;
+                var result = await _service.GetSignsOfRace(queryParameters);
+
+                int count = ((IList)result).Count;
+                var metadata = new
+                {
+                    count,
+                    queryParameters.page,
+                    queryParameters.page_size
+                };
+
+                Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                var error = ex.Message;
+                if (ex.InnerException != null)
+                    error = ex.InnerException.Message;
+                throw new HttpResponseException((int)HttpStatusCode.Conflict, error);
+            }
         }
 
-        // POST: api/races/{raceId}/waypoints
+        // POST: api/races/{raceId}/signs
         [HttpPost("{raceId}/signs")]
         [Authorize("create:races")]
         public async Task<IActionResult> AddSignToRace([FromBody] SignContract contract)
@@ -160,7 +181,7 @@ namespace Api.API
             }
         }
 
-        // POST: api/races/{raceId}/waypoints
+        // PUT: api/races/{raceId}/signs
         [HttpPut("{raceId}/signs/{id}")]
         [Authorize("create:races")]
         public async Task<IActionResult> UpdateSign(string id, [FromBody] SignContract contract)
@@ -181,7 +202,7 @@ namespace Api.API
             }
         }
 
-        // DELETE: api/races/waypoints<id>
+        // DELETE: api/races/signs<id>
         [HttpDelete("{raceId}/signs/{id}")]
         [Authorize("delete:races")]
         public async Task<IActionResult> RemoveSignFromRace(string id)

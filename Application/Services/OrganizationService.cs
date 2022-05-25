@@ -22,17 +22,15 @@ namespace Application.Services
         private readonly TenantAccessService<Tenant> _tenantAccessService;
         private readonly IOrganizationRepository _repository;
         private readonly IMapper _mapper;
-        private readonly IMediator _mediator;
         private readonly ILogger<Organization> _logger;
         private readonly bool _multitenancy = false;
 
         public OrganizationService(TenantAccessService<Tenant> tenantAccessService, IRepository<Organization> repository,
-            IConfiguration config, IMapper mapper, IMediator mediator, ILogger<Organization> logger)
+            IConfiguration config, IMapper mapper, ILogger<Organization> logger)
         {
             _tenantAccessService = tenantAccessService;
             _repository = (IOrganizationRepository) repository;
             _mapper = mapper;
-            _mediator = mediator;
             _logger = logger;
             var value = config["Multitenancy:Enabled"];
             bool.TryParse(value, out _multitenancy);
@@ -42,16 +40,6 @@ namespace Application.Services
         {
             var tenantValidation = new TenantValidation(_tenantAccessService, _multitenancy);
             await tenantValidation.Validate(queryParameters);
-
-            if (await _tenantAccessService.IsGlobalAdministrator())
-            {
-                queryParameters.tenant_id = null;
-                queryParameters.organization_id = null;
-            }
-            else if (!(await _tenantAccessService.IsAdministrator()))
-                queryParameters.organization_id = null;
-            else
-                throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
 
             var result = await _repository.Find(new GetOrganizationsSpecification(queryParameters));
             var response = _mapper.Map<IEnumerable<Organization>, IEnumerable<OrganizationDto>>(result);
@@ -69,12 +57,7 @@ namespace Application.Services
 
         public async Task<OrganizationDto> CreateOrganization(OrganizationContract contract)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
-            var entity = _mapper.Map<OrganizationContract, Organization>(contract);
-            await UpdateProperties(entity);
+            var entity = await UpdateProperties(contract);
 
             entity = await _repository.Add(entity);
             var result = _mapper.Map<Organization, OrganizationDto>(entity);
@@ -84,30 +67,29 @@ namespace Application.Services
 
         public async Task<bool> UpdateOrganization(string id, OrganizationContract contract)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
+            var entity = await UpdateProperties(contract);
 
-            var entity = _mapper.Map<OrganizationContract, Organization>(contract);
-            await UpdateProperties(entity);
-            
             var result = await _repository.Update(id, entity);
-
             return result;
         }
 
         public async Task<bool> DeleteOrganization(string id)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
             var result = await _repository.Remove(id);
             return result;
         }
 
-        private async Task UpdateProperties(Organization entity)
+
+        public async Task<bool> HasParent(string id)
         {
+            var result = await _repository.FindById(id);
+            return result?.ParentId != null ? true : false;
+        }
+
+
+        private async Task<Organization> UpdateProperties(OrganizationContract contract)
+        {
+            var entity = _mapper.Map<OrganizationContract, Organization>(contract);
             Guid? tenantId = entity.TenantId;
             if (tenantId == null || tenantId == Guid.Empty)
             {
@@ -116,24 +98,7 @@ namespace Application.Services
             }
             entity.TenantId = tenantId;
             entity.Id = GuidExtensions.CheckGuid(entity.Id);
-        }
-
-        private string GetOrganizationIdFromRequestPath()
-        {
-            string organizationId = null;
-            var path = _tenantAccessService.GetRequestPath();
-            if (!string.IsNullOrEmpty(path))
-            {
-                var list = path.Split('/');
-                organizationId = list[3];
-            }
-            return organizationId;
-        }
-
-        public async Task<bool> HasParent(string id)
-        {
-            var result = await _repository.FindById(id);
-            return result?.ParentId != null ? true : false;
+            return entity;
         }
     }
 }

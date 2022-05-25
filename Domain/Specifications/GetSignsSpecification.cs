@@ -33,8 +33,8 @@ namespace Domain.Specifications
 
             if (parameters.multitenancy)
             {
-                if (Guid.TryParse(parameters.tenant_id, out Guid tenantId))
-                    AddCriteria(c => c.TenantId == tenantId);
+                Guid.TryParse(parameters.tenant_id, out Guid tenantId);
+                AddCriteria(c => c.TenantId == tenantId);
             }
 
             if (Guid.TryParse(parameters.organization_id, out Guid orgId))

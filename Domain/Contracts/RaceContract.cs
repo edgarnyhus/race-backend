@@ -9,6 +9,8 @@ namespace Domain.Contracts
     public class RaceContract 
     {
         public string? Name { get; set; }
+        [JsonProperty("race_day")]
+        public int RaceDay { get; set; }
         public string? Notes { get; set; }
         [JsonProperty("created_by")]
         public string? CreatedBy { get; set; }

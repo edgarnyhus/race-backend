@@ -58,11 +58,6 @@ public class SignGroupService : ISignGroupService
 
         public async Task<SignGroupDto> CreateSignGroup(SignGroupContract contract)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException(
-            //        "Unauthorized. You are missing the necessary permissions to issue this request.");
-
             var entity = _mapper.Map<SignGroupContract, SignGroup>(contract);
             entity = await _repository.Add(entity);
 
@@ -72,11 +67,6 @@ public class SignGroupService : ISignGroupService
 
         public async Task<bool> UpdateSignGroup(string id, SignGroupContract contract)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException(
-            //        "Unauthorized. You are missing the necessary permissions to issue this request.");
-
             var entity = _mapper.Map<SignGroupContract, SignGroup>(contract);
             Guid.TryParse(id, out Guid guid);
             var result = await _repository.Update(guid, entity);
@@ -85,11 +75,6 @@ public class SignGroupService : ISignGroupService
 
         public async Task<bool> DeleteSignGroup(string id)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException(
-            //        "Unauthorized. You are missing the necessary permissions to issue this request.");
-
             Guid.TryParse(id, out Guid guid);
             var result = await _repository.Remove(guid);
 

@@ -22,17 +22,15 @@ namespace Application.Services
         private readonly TenantAccessService<Tenant> _tenantAccessService;
         private readonly IDriverRepository _repository;
         private readonly IMapper _mapper;
-        private readonly IMediator _mediator;
         private readonly ILogger<DriverService> _logger;
         private readonly bool _multitenancy = false;
 
         public DriverService(TenantAccessService<Tenant> tenantAccessService, IRepository<Driver> repository, IMapper mapper,
-            IMediator mediator, ILogger<DriverService> logger, IConfiguration config)
+            ILogger<DriverService> logger, IConfiguration config)
         {
             _tenantAccessService = tenantAccessService;
             _repository = (IDriverRepository)repository;
             _mapper = mapper;
-            _mediator = mediator;
             _logger = logger;
             var value = config["Multitenancy:Enabled"];
             bool.TryParse(value, out _multitenancy);
@@ -58,10 +56,6 @@ namespace Application.Services
 
         public async Task<DriverDto> CreateDriver(DriverContract contract)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
             var entity = await UpdateProperties(contract);
             
             var result = await _repository.Add(entity);
@@ -72,10 +66,6 @@ namespace Application.Services
 
         public async Task<bool> UpdateDriver(string id, DriverContract contract)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
             var entity = await UpdateProperties(contract);
 
             Guid.TryParse(id, out Guid guid);
@@ -85,10 +75,6 @@ namespace Application.Services
 
         public async Task<bool> DeleteDriver(string id)
         {
-            //var isAdmin = await _tenantAccessService.IsAdministrator();
-            //if (_multitenancy && !isAdmin)
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
             Guid.TryParse(id, out Guid guid);
             var result = await _repository.Remove(guid);
             return result;

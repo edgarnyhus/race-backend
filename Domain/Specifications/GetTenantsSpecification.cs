@@ -12,6 +12,12 @@ namespace Domain.Specifications
 
         public GetTenantsSpecification(IQueryParameters parameters) : base(parameters)
         {
+            if (parameters.multitenancy)
+            {
+                Guid.TryParse(parameters.tenant_id, out Guid tenantId);
+                AddCriteria(c => c.Id == tenantId);
+            }
+
             if (parameters.page_size > 0)
             {
                 var page = parameters.page == 0 ? parameters.page : parameters.page - 1;

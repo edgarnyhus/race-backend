@@ -10,6 +10,8 @@ namespace Domain.Dtos
     public class RaceDto : EntityBaseDto
     {
         public string? Name { get; set; }
+        [JsonProperty("race_day")]
+        public int RaceDay { get; set; }
         public string? Notes { get; set; }
         [JsonProperty("scheduled_at")]
         public DateTime? ScheduledAt { get; set; }
