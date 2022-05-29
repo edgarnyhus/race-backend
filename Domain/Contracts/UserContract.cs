@@ -9,10 +9,10 @@ namespace Domain.Contracts
     public class AppMetadataContract
     {
         [JsonProperty("tenant_id")]
-        public string? tenantId { get; set; }
-        [JsonPropertyName("organization_id")]
-        public string? organizationId { get; set; }
-        public string[]? roles { get; set; }
+        public string? TenantId { get; set; }
+        [JsonProperty("organization_id")]
+        public string? OrganizationId { get; set; }
+        public string[]? Roles { get; set; }
     }
 
     public class UserMetadataContract
@@ -28,12 +28,12 @@ namespace Domain.Contracts
         public string? Email { get; set; }
         [JsonProperty("phone_number")]
         public string? PhoneNumber { get; set; }
-        //[JsonPropertyName("user_metadata")]
+        //[JsonProperty("user_metadata")]
         //public UserMetadataContract? userMetadata { get; set; }
         [JsonProperty("app_metadata")]
         public AppMetadataContract? AppMetadata { get; set; }
         //public string? Picture { get; set; }
-        //[JsonPropertyName("user_id")]
+        //[JsonProperty("user_id")]
         //public string? UserId { get; set; } = null!;
         //public string? Password { get; set; }
         //[JsonProperty("email_verified")]

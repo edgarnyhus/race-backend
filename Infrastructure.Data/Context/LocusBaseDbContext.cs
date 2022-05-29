@@ -72,6 +72,9 @@ namespace Infrastructure.Data.Context
                 .Property(p => p.Name)
                 .HasMaxLength(64);
             modelBuilder.Entity<Race>()
+                .Property(p => p.LogoUrl)
+                .HasMaxLength(256);
+            modelBuilder.Entity<Race>()
                 .Property(p => p.CreatedBy)
                 .HasMaxLength(64);
             modelBuilder.Entity<Race>()
@@ -215,6 +218,9 @@ namespace Infrastructure.Data.Context
                 .HasMaxLength(64)
                 .IsRequired();
             modelBuilder.Entity<Organization>()
+                .Property(p => p.LogoUrl)
+                .HasMaxLength(256);
+            modelBuilder.Entity<Organization>()
                 .Property(p => p.Identifier)
                 .HasMaxLength(256);
             modelBuilder.Entity<Organization>()
@@ -243,6 +249,9 @@ namespace Infrastructure.Data.Context
                 .Property(p => p.Name)
                 .HasMaxLength(64)
                 .IsRequired();
+            modelBuilder.Entity<Tenant>()
+                .Property(p => p.LogoUrl)
+                .HasMaxLength(256);
             modelBuilder.Entity<Tenant>()
                 .Property(p => p.Description)
                 .HasMaxLength(256);

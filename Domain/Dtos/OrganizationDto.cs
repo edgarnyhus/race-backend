@@ -1,25 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace Domain.Dtos
 {
     public class OrganizationDto : EntityBaseDto
     {
-        [JsonPropertyName("tenant_id")]
-        public string? tenantId { get; set; }
-        public string? name { get; set; }
-        public string? identifier { get; set; }
-        [JsonPropertyName("customer_number")]
-        public string? customerNumber { get; set; }
-        [JsonPropertyName("organization_number")]
-        public string? organizationNumber { get; set; }
-        public int level { get; set; } = 1;
-        [JsonPropertyName("parent_id")]
-        public Guid? parentId { get; set; }
-        public OrganizationDto? parent { get; set; }
-        public virtual ICollection<OrganizationDto>? children { get; set; }
+        [JsonProperty("tenant_id")]
+        public string? TenantId { get; set; }
+        public string? Name { get; set; }
+        [JsonProperty("logo_url")]
+        public string? LogoUrl { get; set; }
+        public string? Identifier { get; set; }
+        [JsonProperty("customer_number")]
+        public string? CustomerNumber { get; set; }
+        [JsonProperty("organization_number")]
+        public string? OrganizationNumber { get; set; }
+        public int Level { get; set; } = 1;
+        [JsonProperty("parent_id")]
+        public Guid? ParentId { get; set; }
+        public OrganizationDto? Parent { get; set; }
+        public virtual ICollection<OrganizationDto>? Children { get; set; }
     }
 }

@@ -8,6 +8,7 @@ namespace Domain.Models
     {
         public string Name { get; set; } = null!;
         public string? Description { get; set; }
+        public string? LogoUrl { get; set; }
 
         /// Comma-separated list of tenant identifiers, i.e. domain, subdomains
         public string Identifier { get; set; } = null!;

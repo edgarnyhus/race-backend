@@ -63,9 +63,6 @@ namespace Application.Services
 
         public async Task<TenantDto> CreateTenant(TenantContract contract)
         {
-            //if (!(await _tenantAccessService.IsAdministrator()))
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
             var entity = _mapper.Map<TenantContract, Tenant>(contract);
             UpdateProperties(entity);
 
@@ -76,9 +73,6 @@ namespace Application.Services
 
         public async Task<bool> UpdateTenant(string id, TenantContract contract)
         {
-            //if (!(await _tenantAccessService.IsAdministrator()))
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
             var entity = _mapper.Map<TenantContract, Tenant>(contract);
             Guid.TryParse(id, out Guid guid);
             var result = await _repository.Update(guid, entity);
@@ -87,9 +81,6 @@ namespace Application.Services
 
         public async Task<bool> DeleteTenant(string id)
         {
-            //if (!(await _tenantAccessService.IsAdministrator()))
-            //    throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
-
             Guid.TryParse(id, out Guid guid);
             var result = await _repository.Remove(guid);
             return result;

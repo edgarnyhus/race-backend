@@ -6,6 +6,6 @@ namespace Domain.Dtos
 {
     public abstract class EntityBaseDto
     {
-        public string? id { get; protected internal set; }
+        public string? Id { get; protected internal set; }
     }
 }

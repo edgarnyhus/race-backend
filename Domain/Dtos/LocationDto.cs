@@ -12,9 +12,9 @@ namespace Domain.Dtos
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         //public DateTime? Timestamp { get; set; }
-        [JsonPropertyName("waypoint_id")]
+        [JsonProperty("waypoint_id")]
         public string? WaypointId { get; set; }
-        [JsonPropertyName("sign_id")]
+        [JsonProperty("sign_id")]
         public string? SignId { get; set; }
     }
 }

@@ -41,6 +41,9 @@ namespace Application.Services
             var tenantValidation = new TenantValidation(_tenantAccessService, _multitenancy);
             await tenantValidation.Validate(queryParameters);
 
+            if (await _tenantAccessService.IsAdministrator())
+                queryParameters.organization_id = null;
+
             var result = await _repository.Find(new GetOrganizationsSpecification(queryParameters));
             var response = _mapper.Map<IEnumerable<Organization>, IEnumerable<OrganizationDto>>(result);
 

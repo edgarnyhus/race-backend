@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json.Serialization;
 using Newtonsoft.Json;
-using Domain.Models;
 
 namespace Domain.Dtos
 {
@@ -12,6 +8,8 @@ namespace Domain.Dtos
         public string? Name { get; set; }
         [JsonProperty("race_day")]
         public int RaceDay { get; set; }
+        [JsonProperty("logo_url")]
+        public string? LogoUrl { get; set; }
         public string? Notes { get; set; }
         [JsonProperty("scheduled_at")]
         public DateTime? ScheduledAt { get; set; }

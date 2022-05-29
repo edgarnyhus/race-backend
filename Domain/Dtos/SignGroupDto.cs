@@ -1,17 +1,17 @@
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 using Domain.Models;
 
 namespace Domain.Dtos;
 
 public class SignGroupDto : EntityBaseDto
 {
-    [JsonPropertyName("tenant_id")]
-    public string? tenantId { get; set; }
-    public string? name { get; set; }
-    public List<Sign>? signs { get; set; }
-    public string? notes { get; set; }
-    [JsonPropertyName("organization_id")]
-    public string? organizationId { get; set; }
-    //public  Organization? organization { get; set; }
+    [JsonProperty("tenant_id")]
+    public string? TenantId { get; set; }
+    public string? Name { get; set; }
+    public List<Sign>? Signs { get; set; }
+    public string? Notes { get; set; }
+    [JsonProperty("organization_id")]
+    public string? OrganizationId { get; set; }
+    //public  Organization? Organization { get; set; }
 }

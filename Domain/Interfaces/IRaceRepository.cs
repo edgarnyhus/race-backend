@@ -15,5 +15,7 @@ namespace Domain.Interfaces
         Task<bool> AddSignToRace(Sign entity);
         Task<bool> UpdateSignInRace(string id, Sign entity);
         Task<bool> RemoveSignFromRace(string id);
+
+        Task CheckIfRaceDaySignsExist(Race race);
     }
 }

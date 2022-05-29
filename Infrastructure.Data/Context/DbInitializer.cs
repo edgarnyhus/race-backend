@@ -186,7 +186,10 @@ namespace Infrastructure.Data.Context
                     int numberOfRaceDays = 4;
                     try { numberOfRaceDays = int.Parse(_config["NumberOfRaceDays"]); } catch { }
                     var signs = await context.Signs.ToListAsync();
-                    var count = signs.FindAll(x => x.Name.StartsWith("1-")).Count();
+                    if (signs.Count == 0)
+                        return;
+                    var s = signs.FirstOrDefault();
+                    var count = signs.Where(x => x.QrCode == s.QrCode).Count();
                     if (count < numberOfRaceDays)
                     {
                         foreach (var sign in signs)

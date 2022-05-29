@@ -6,10 +6,10 @@ namespace Domain.Dtos;
 public class SignTypeDto
 {
     //[JsonProperty("tenant_id")]
-    //public string? tenantId { get; set; }
-    public string? id { get; set; }
-    public string? name { get; set; }
-    public string? description { get; set; }
+    //public string? TenantId { get; set; }
+    public string? Id { get; set; }
+    public string? Name { get; set; }
+    public string? Description { get; set; }
     [JsonProperty("image_url")]
-    public string? imageUrl { get; set; }
+    public string? ImageUrl { get; set; }
 }

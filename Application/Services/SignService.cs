@@ -64,6 +64,8 @@ namespace Application.Services
         {
             if (string.IsNullOrEmpty(contract.Name))
                 throw new ArgumentNullException("name");
+            if (contract.RaceDay == 0)
+                throw new ArgumentNullException("race_day");
             if (string.IsNullOrEmpty(contract.SignTypeId))
                 throw new ArgumentNullException("signtype_id");
 
@@ -106,19 +108,19 @@ namespace Application.Services
             entity.State = SignState.Inactive;
 
             // Create the sign plus 'numberOfRaceDays' shadow signs
+            SignDto result = null;
             int numberOfRaceDays = 4;
             try { numberOfRaceDays = int.Parse(_config["NumberOfRaceDays"]); } catch { }
             for (raceDay = 1; raceDay <= numberOfRaceDays; raceDay++)
             {
-                var sign = new Sign();
-                sign = entity;
-                sign.Id = null;
-                sign.RaceDay = raceDay;
-                sign = await _repository.Add(entity);
+                //var sign = new Sign();
+                //var sign = entity;
+                entity.Id = null;
+                entity.RaceDay = raceDay;
+                entity = await _repository.Add(entity);
                 if (raceDay == 1)
-                    entity = sign;
+                    result = _mapper.Map<Sign, SignDto>(entity);
             }
-            var result = _mapper.Map<Sign, SignDto>(entity);
 
             return result;
         }
@@ -205,16 +207,10 @@ namespace Application.Services
 
             var entity = _mapper.Map<SignContract, Sign>(contract);
 
-            if (entity.TenantId == null)
-            {
-                if (Guid.TryParse(parameters.tenant_id, out Guid tid))
-                    entity.TenantId = tid;
-            }
-            if (entity.OrganizationId == null)
-            {
-                if (Guid.TryParse(parameters.organization_id, out Guid oid))
-                    entity.OrganizationId = oid;
-            }
+            if (entity.TenantId == null && Guid.TryParse(parameters.tenant_id, out Guid tid))
+                entity.TenantId = tid;
+            if (entity.OrganizationId == null && Guid.TryParse(parameters.organization_id, out Guid oid))
+                entity.OrganizationId = oid;
 
             if (entity.Location != null && entity.Location.Timestamp == null)
                 entity.Location.Timestamp = DateTime.UtcNow;

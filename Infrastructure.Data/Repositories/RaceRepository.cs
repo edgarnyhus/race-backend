@@ -10,8 +10,7 @@ using Domain.Models;
 using Infrastructure.Data.Context;
 using Infrastructure.Data.Repositories.Helpers;
 using Domain.Specifications;
-using System.Collections.ObjectModel;
-using Domain.Contracts;
+
 
 namespace Infrastructure.Data.Repositories
 {
@@ -78,71 +77,14 @@ namespace Infrastructure.Data.Repositories
             if (entity == null)
                 return false;
 
+            var signs = await _dbContext.Signs.Where(x => x.RaceId == entity.Id).ToListAsync();
+            foreach (var sign in signs)
+                await RemoveSignFromRace(sign.Id.ToString());
+
             _dbContext.Set<Race>().Remove(entity);
             await _dbContext.SaveChangesAsync();
             return true;
         }
-
-
-        //public override async Task<Race> Add(Race entity)
-        //{
-        //    try
-        //    {
-        //        //await PropertyChecks.CheckPrincipleAndDependant(_dbContext, entity, entity.Organization);
-        //        var result = await _dbContext.Set<Race>().AddAsync(entity);
-        //        await _dbContext.SaveChangesAsync();
-        //        return result.Entity;
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        var error = e.Message;
-        //        if (e.InnerException != null)
-        //            error = e.InnerException.Message;
-        //        _logger.LogError($"Add Race Exception: {error}");
-        //        throw;
-        //    }
-        //}
-
-        //public override async Task<bool> Update(Guid id, Race entity)
-        //{
-        //    var existingEntity = await _dbContext.Set<Race>()
-        //        .Where(e => id == e.Id)
-        //        .AsNoTracking()
-        //        .FirstOrDefaultAsync();
-
-        //    if (existingEntity == null)
-        //    {
-        //        var assignment = await Add(entity);
-        //        return assignment != null;
-        //    }
-
-        //    _mapper.Map(entity, existingEntity);
-
-        //    if (IsDevelopment)
-        //        foreach (var entry in _dbContext.ChangeTracker.Entries())
-        //            Console.WriteLine($"{entry.Metadata.Name}, {entry.State}");
-
-        //    _dbContext.Update(existingEntity);
-        //    await _dbContext.SaveChangesAsync();
-        //    return true;
-        //}
-
-        //public override async Task<bool> Remove(Guid id)
-        //{
-        //    try
-        //    {
-        //        var result = await Task.Run(() => base.Remove(id));
-        //        return result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var error = ex.Message;
-        //        if (ex.InnerException != null)
-        //            error = ex.InnerException.Message;
-        //        _logger.LogError($"Remove Exception: {error}");
-        //        throw new Exception(error);
-        //    }
-        //}
 
 
         //
@@ -173,7 +115,7 @@ namespace Infrastructure.Data.Repositories
             if (entity.RaceId == null)
                 throw new ArgumentException("Invalid request. A race withh the specified race_id does not exist.");
             if (sign.RaceDay != entity.RaceDay)
-                throw new ArgumentException("Invalid property (race_day).");
+                throw new ArgumentException("Invalid property (race_day). Mismatch between race.race_day and sign.race_day.");
 
             await PropertyChecks.CheckProperties(_dbContext, entity, sign);
             sign.RaceId = entity.RaceId;
@@ -263,9 +205,50 @@ namespace Infrastructure.Data.Repositories
 
             entity.RaceId = null;
             entity.Location = null;
+            entity.State = entity.State == SignState.Discarded ? SignState.Discarded : SignState.Inactive;
 
             await _dbContext.SaveChangesAsync();
             return true;
+        }
+
+
+        public async Task CheckIfRaceDaySignsExist(Race race)
+        {
+            var numberOfRaceDays = race.RaceDay;
+            var signs = await _dbContext.Signs.ToListAsync();
+            foreach (var sign in signs)
+            {
+                if (sign.State != SignState.Discarded)
+                {
+                    if (sign.RaceDay == 0)
+                    {
+                        sign.RaceDay = 1;
+                        _dbContext.Signs.Update(sign);
+                        await _dbContext.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        var item = signs.Find(x => x.QrCode == sign.QrCode && x.RaceDay == race.RaceDay);
+                        if (item == null)
+                        {
+                            item = new Sign();
+                            item = sign;
+                            item.Id = null;
+                            item.RaceDay = race.RaceDay;
+                            item.RaceId = null;
+                            item.Location = null;
+                            item.GeoLocation = null;
+                            item.LastScanned = null;
+                            item.LastScannedBy = null;
+                            item.State = SignState.Inactive;
+
+                            await _dbContext.Signs.AddAsync(item);
+                            await _dbContext.SaveChangesAsync();
+                        }
+                    }
+
+                }
+            }
         }
     }
 }

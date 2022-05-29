@@ -90,17 +90,18 @@ namespace Infrastructure.Data.Repositories
                     .SingleOrDefaultAsync(x => x.Id == guid);
             else
             {
-                // QR Code may be on the format '1|UPZYUM70U6VT' where suffix separated by '|' is race day
-                var raceDay = entity.RaceDay;
-                var qrCode = id;
-                var arr = id.Split('|');
-                if (arr.Count() > 1)
-                {
-                    try { raceDay = int.Parse(arr[0]); } catch (Exception) { };
-                    if (raceDay != entity.RaceDay)
-                        throw new ArgumentException("race_day mismatch between sign.race_day and id (<race_day>|<qr_code>).");
-                    qrCode = arr[1];
-                }
+                //// QR Code may be on the format '1|UPZYUM70U6VT' where suffix separated by '|' is race day
+                //var raceDay = entity.RaceDay;
+                //var qrCode = id;
+                //var arr = id.Split('|');
+                //if (arr.Count() > 1)
+                //{
+                //    try { raceDay = int.Parse(arr[0]); } catch (Exception) { };
+                //    if (raceDay != entity.RaceDay)
+                //        throw new ArgumentException("race_day mismatch between sign.race_day and id (<race_day>|<qr_code>).");
+                //    qrCode = arr[1];
+                //}
+                var qrCode = GetQrCodeFromId(id, entity);
                 existingEntity = await query
                     .SingleOrDefaultAsync(x => x.QrCode == qrCode && x.RaceDay == entity.RaceDay);
             }
@@ -148,6 +149,29 @@ namespace Infrastructure.Data.Repositories
                 .ToDictionary(ee => (int)ee, ee => Enum.GetName(typeof(SignState), ee)).ToList();
 
             return result;
+        }
+
+
+
+        public static string GetQrCodeFromId(string id, Sign sign)
+        {
+            // QR Code may be on the format '1|UPZYUM70U6VT' where suffix separated by '|' is race day
+
+            var raceDay = sign.RaceDay;
+            var qrCode = id;
+            var arr = id.Split('|');
+            if (arr.Count() > 1)
+            {
+                try { raceDay = int.Parse(arr[0]); }
+                catch (Exception) {
+                    throw new ArgumentException("Parameter id is invalid. race_day in the id (<race_day>|<qr_code>) must be an integer");
+                };
+                if (raceDay != sign.RaceDay)
+                    throw new ArgumentException("race_day mismatch between sign.race_day and id (<race_day>|<qr_code>).");
+                qrCode = arr[1];
+            }
+
+            return qrCode;
         }
     }
 }

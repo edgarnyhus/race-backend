@@ -9,10 +9,10 @@
     <DebugSymbols>false</DebugSymbols>
     <DebugType></DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\R\net6.0</OutputPath>
+    <OutputPath>bin\R\net6.0\net6.0</OutputPath>
     <DefineConstants></DefineConstants>
     <WarningLevel>4</WarningLevel>
-    <IntermediateOutputPath>obj\R\net6.0</IntermediateOutputPath>
+    <IntermediateOutputPath>obj\R\net6.0\net6.0</IntermediateOutputPath>
     <NoWarn></NoWarn>
     <NoStdLib>false</NoStdLib>
   </PropertyGroup>

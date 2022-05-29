@@ -1,13 +1,15 @@
 ﻿using System.Collections.Generic;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace Domain.Dtos
 {
     public class TenantDto : EntityBaseDto
     {
-        public string? name { get; set; }
-        public string? description { get; set; }
-        public string? identifier { get; set; }
-        public ICollection<OrganizationDto>? children { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        [JsonProperty("logo_url")]
+        public string? LogoUrl { get; set; }
+        public string? Identifier { get; set; }
+        public ICollection<OrganizationDto>? Children { get; set; }
     }
 }

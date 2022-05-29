@@ -20,8 +20,6 @@ namespace Application.Services
 {
     public class RaceService : IRaceService
     {
-
-        //private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly TenantAccessService<Tenant> _tenantAccessService;
         private readonly IRaceRepository _repository;
         private readonly IMapper _mapper;
@@ -31,7 +29,6 @@ namespace Application.Services
         public RaceService(IHttpContextAccessor httpContextAccessor, TenantAccessService<Tenant> tenantAccessService,
             IRepository<Race> repository, IMapper mapper, ILogger<Race> logger, IConfiguration config)
         {
-            //_httpContextAccessor = httpContextAccessor;
             _tenantAccessService = tenantAccessService;
             _repository = (IRaceRepository)repository;
             _mapper = mapper;
@@ -65,12 +62,13 @@ namespace Application.Services
             var entity = await UpdateProperties(contract);
             if (entity.CreatedAt == null)
                 entity.CreatedAt = DateTime.UtcNow;
-            else
-                entity.UpdatedAt = DateTime.UtcNow;
-
+            if (string.IsNullOrEmpty(entity.CreatedBy))
+                entity.CreatedBy = await _tenantAccessService.GetUserEmailAddressAsync();
 
             var result = await _repository.Add(entity);
             var response = _mapper.Map<Race, RaceDto>(result);
+
+            await _repository.CheckIfRaceDaySignsExist(result);
 
             return response;
         }
@@ -79,9 +77,13 @@ namespace Application.Services
         public async Task<bool> UpdateRace(string id, RaceContract contract)
         {
             var entity = await UpdateProperties(contract);
+            if (entity.UpdatedAt == null)
+                entity.UpdatedAt = DateTime.UtcNow;
 
             Guid.TryParse(id, out Guid guid);
             var result = await _repository.Update(guid, entity);
+
+            await _repository.CheckIfRaceDaySignsExist(entity);
 
             return result;
         }
@@ -104,26 +106,20 @@ namespace Application.Services
 
             var entity = _mapper.Map<RaceContract, Race>(contract);
 
-            if (entity.TenantId == null)
-            {
-                if (Guid.TryParse(parameters.tenant_id, out Guid tid))
-                    entity.TenantId = tid;
-            }
-            if (entity.OrganizationId == null)
-            {
-                if (Guid.TryParse(parameters.organization_id, out Guid oid))
-                    entity.OrganizationId = oid;
-            }
+            if (entity.RaceDay == 0)
+                throw new ArgumentNullException("race_day");
 
-            if (string.IsNullOrEmpty(entity.CreatedBy))
-                entity.CreatedBy = await _tenantAccessService.GetUserEmailAddressAsync();
+            if (entity.TenantId == null && Guid.TryParse(parameters.tenant_id, out Guid tid))
+                entity.TenantId = tid;
+            if (entity.OrganizationId == null && Guid.TryParse(parameters.organization_id, out Guid oid))
+                entity.OrganizationId = oid;
 
             return entity;
         }
 
 
         //
-        // Signs of Race
+        // Race Signs
         //
 
         public async Task<IEnumerable<SignDto>> GetSignsOfRace(QueryParameters queryParameters)
@@ -187,21 +183,14 @@ namespace Application.Services
             if (race == null)
                 throw new ArgumentException($"Invalid request. Race with id {entity.RaceId} does not exists.");
             if (entity.RaceDay == 0)
-                throw new ArgumentException("Invalid request. The property race_day must be set.");
+                throw new ArgumentNullException("race_day");
             if (race.RaceDay != entity.RaceDay)
                 throw new ArgumentException("Invalid request. Mismatch between race.race_day and sign.race_day.");
 
-            if (entity.TenantId == null)
-            {
-                if (Guid.TryParse(parameters.tenant_id, out Guid tid))
-                    entity.TenantId = tid;
-            }
-
-            if (entity.OrganizationId == null)
-            {
-                if (Guid.TryParse(parameters.organization_id, out Guid oid))
-                    entity.OrganizationId = oid;
-            }
+            if (entity.TenantId == null && Guid.TryParse(parameters.tenant_id, out Guid tid))
+                entity.TenantId = tid;
+            if (entity.OrganizationId == null && Guid.TryParse(parameters.organization_id, out Guid oid))
+                entity.OrganizationId = oid;
 
             return entity;
         }

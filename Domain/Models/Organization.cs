@@ -13,6 +13,7 @@ namespace Domain.Models
         [ForeignKey("TenantId")]
         public Guid? TenantId { get; set; }
         public string? Name { get; set; }
+        public string? LogoUrl { get; set; }
         public string? Identifier { get; set; }
         public virtual ICollection<Organization>? Children { get; set; }
         public virtual ICollection<Driver>? Drivers { get; set; }

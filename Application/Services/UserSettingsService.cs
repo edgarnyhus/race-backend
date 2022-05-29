@@ -66,8 +66,6 @@ namespace Application.Services
 
         public async Task<UserSettingsDto> CreateUserSettings(UserSettingsContract contract)
         {
-            //AdminCheck();
-
             var entity = _mapper.Map<UserSettingsContract, UserSettings>(contract);
             entity = UpdateProperties(entity);
 
@@ -79,8 +77,6 @@ namespace Application.Services
 
         public async Task<UserSettingsDto> CreateDefaultUserSettings(string userId)
         {
-            //AdminCheck();
-
             var user = await _userRepository.FindById(userId);
             if (user?.Id != null || user.UserSettings != null)
                 return null;
@@ -96,8 +92,6 @@ namespace Application.Services
 
         public async Task<bool> UpdateUserSettings(string id, UserSettingsContract contract)
         {
-            //AdminCheck();
-
             try
             {
                 var entity = _mapper.Map<UserSettingsContract, UserSettings>(contract);

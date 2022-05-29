@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text.Json.Serialization;
-using Domain.Models;
+﻿using Newtonsoft.Json;
 
 namespace Domain.Dtos
 {
@@ -9,7 +7,7 @@ namespace Domain.Dtos
         public string? Alias { get; set; }
         public string? Notes { get; set; }
         public LocationDto? Location { get; set; }
-        [JsonPropertyName("race_id")]
+        [JsonProperty("race_id")]
         public string? RaceId { get; set; }
     }
 }

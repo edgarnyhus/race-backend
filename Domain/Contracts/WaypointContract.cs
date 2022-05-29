@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text.Json.Serialization;
-using GeoAPI.Geometries;
-using Domain.Models;
+﻿using Newtonsoft.Json;
 
 namespace Domain.Contracts
 {
@@ -11,7 +8,7 @@ namespace Domain.Contracts
         public string? Alias { get; set; }
         public string? Notes { get; set; }
         public LocationContract Location { get; set; }
-        [JsonPropertyName("race_id")]
+        [JsonProperty("race_id")]
         public string? RaceId { get; set; }
         //public Race? Race { get; set; }
     }
