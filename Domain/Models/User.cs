@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using Domain.Interfaces;
 using Newtonsoft.Json;
@@ -8,6 +9,12 @@ namespace Domain.Models
     /// 
     /// Auth0 User
     /// 
+
+    
+    public class UserList
+    {
+        public IList<string> users { get; set; }
+    }
 
     public class Identity
     {

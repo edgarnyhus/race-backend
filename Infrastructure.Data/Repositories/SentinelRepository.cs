@@ -12,16 +12,16 @@ using Infrastructure.Data.Repositories.Helpers;
 
 namespace Infrastructure.Data.Repositories
 {
-    public class DriverRepository : Repository<Driver>, IDriverRepository
+    public class SentinelRepository : Repository<Sentinel>, ISentinelRepository
     {
-        public DriverRepository(LocusBaseDbContext dbContext, IMapper mapper, ILogger<Repository<Driver>> logger) : base(dbContext, mapper, logger)
+        public SentinelRepository(LocusBaseDbContext dbContext, IMapper mapper, ILogger<Repository<Sentinel>> logger) : base(dbContext, mapper, logger)
         {
         }
 
 
-        public override async Task<IEnumerable<Driver>> Find(ISpecification<Driver> specification)
+        public override async Task<IEnumerable<Sentinel>> Find(ISpecification<Sentinel> specification)
         {
-            var result = await _dbContext.Set<Driver>()
+            var result = await _dbContext.Set<Sentinel>()
                 .Include(o => o.Organization)
                 .Include(x => x.Race)
                 .AsNoTracking()
@@ -29,9 +29,9 @@ namespace Infrastructure.Data.Repositories
             return result;
         }
 
-        public override async Task<Driver> FindById(Guid id)
+        public override async Task<Sentinel> FindById(Guid id)
         {
-            var result = await _dbContext.Set<Driver>()
+            var result = await _dbContext.Set<Sentinel>()
                 .Include(o => o.Organization)
                 .Include(x => x.Race)
                 .AsNoTracking()
@@ -39,13 +39,13 @@ namespace Infrastructure.Data.Repositories
             return result;
         }
 
-        public override async Task<Driver> Add(Driver entity)
+        public override async Task<Sentinel> Add(Sentinel entity)
         {
             try
             {
                 await PropertyChecks.CheckProperties(_dbContext, entity, null);
 
-                var result = await _dbContext.Set<Driver>().AddAsync(entity);
+                var result = await _dbContext.Set<Sentinel>().AddAsync(entity);
                 await _dbContext.SaveChangesAsync();
                 return result.Entity;
             }
@@ -57,14 +57,14 @@ namespace Infrastructure.Data.Repositories
         }
 
 
-        public override async Task<bool> Update(Guid id, Driver entity)
+        public override async Task<bool> Update(Guid id, Sentinel entity)
         {
             var configuration = new MapperConfiguration(cfg =>
-                cfg.CreateMap<Driver, Driver>()
+                cfg.CreateMap<Sentinel, Sentinel>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null)));
             var mapper = configuration.CreateMapper();
 
-            Driver existingEntity = await _dbContext.Set<Driver>()
+            Sentinel existingEntity = await _dbContext.Set<Sentinel>()
                 .Include(x => x.Organization)
                 .Include(x => x.Race)
                 .FirstOrDefaultAsync(a => a.Id == id);
@@ -86,7 +86,7 @@ namespace Infrastructure.Data.Repositories
 
         public override async Task<bool> Remove(Guid id)
         {
-            Driver entry = await _dbContext.Set<Driver>().Where(i => i.Id == id).SingleOrDefaultAsync();
+            Sentinel entry = await _dbContext.Set<Sentinel>().Where(i => i.Id == id).SingleOrDefaultAsync();
             if (entry == null) return false;
             _dbContext.Remove(entry);
             await _dbContext.SaveChangesAsync();

@@ -121,6 +121,21 @@ namespace Application.Services
             return response;
         }
 
+        public async Task<IEnumerable<UserDto>> GetUsersOfRole(string id)
+        {
+            var result = await _repository.GetUsersOfRole(id);
+            var response = _mapper.Map<IEnumerable<User>, IEnumerable<UserDto>>(result);
+            return response;
+        }
+
+        public async Task<bool> AssignUsersToRole(string roleId, UserList userList)
+        {
+            var result = await _repository.AssignUsersToRole(roleId, userList);
+            return result;
+        }
+
+
+
         public async Task<IEnumerable<RoleDto>> GetUserRoles(string id)
         {
             var result = await _repository.GetUserRoles(id);

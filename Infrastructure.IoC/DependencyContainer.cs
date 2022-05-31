@@ -17,7 +17,7 @@ namespace Infrastructure.IoC
             // Domain Handlers
 
             // Application layer
-            services.AddScoped<IDriverService, DriverService>();
+            services.AddScoped<ISentinelService, SentinelService>();
             services.AddScoped<IOrganizationService, OrganizationService>();
             services.AddScoped<IRaceService, RaceService>();
             services.AddScoped<ISignGroupService, SignGroupService>();
@@ -29,7 +29,7 @@ namespace Infrastructure.IoC
             services.AddScoped<IWaypointService, WaypointService>();
 
             // Data layer
-            services.AddTransient<IRepository<Driver>, DriverRepository>();
+            services.AddTransient<IRepository<Sentinel>, SentinelRepository>();
             services.AddTransient<IRepository<Organization>, OrganizationRepository>();
             services.AddTransient<IRepository<Race>, RaceRepository>();
             services.AddTransient<IRepository<SignGroup>, SignGroupRepository>();

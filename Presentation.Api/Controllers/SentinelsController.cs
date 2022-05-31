@@ -15,12 +15,12 @@ namespace Api.API
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class DriversController : ControllerBase
+    public class SentinelsController : ControllerBase
     {
-        private readonly IDriverService _service;
+        private readonly ISentinelService _service;
         private readonly AttachmentCreatedDateResolver _resolver;
 
-        public DriversController(IDriverService service, AttachmentCreatedDateResolver resolver)
+        public SentinelsController(ISentinelService service, AttachmentCreatedDateResolver resolver)
         {
             _service = service;
             _resolver = resolver;
@@ -30,13 +30,13 @@ namespace Api.API
         // GET: api/drivers
         [HttpGet]
         [Authorize("read:drivers")]
-        public async Task<IActionResult> GetDrivers([FromQuery] QueryParameters queryParameters)
+        public async Task<IActionResult> GetSentinels([FromQuery] QueryParameters queryParameters)
         {
             throw new NotImplementedException("Function is not yet implemented");
 
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
-            var result = await _service.GetDrivers(queryParameters);
+            var result = await _service.GetSentinels(queryParameters);
 
             int count = ((IList)result).Count;
             var metadata = new
@@ -54,13 +54,13 @@ namespace Api.API
         // GET: api/drivers<id>
         [HttpGet("{id}")]
         [Authorize("read:drivers")]
-        public async Task<IActionResult> GetDriverById(string id)
+        public async Task<IActionResult> GetSentinelById(string id)
         {
             throw new NotImplementedException("Function is not yet implemented");
 
             _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
-            var result = await _service.GetDriverById(id);
+            var result = await _service.GetSentinelById(id);
             return result != null ? (IActionResult) Ok(result) : NotFound();
 
         }
@@ -69,7 +69,7 @@ namespace Api.API
         // POST: api/drivers
         [HttpPost]
         [Authorize("create:drivers")]
-        public async Task<IActionResult> CreateDriver([FromBody] DriverContract contract)
+        public async Task<IActionResult> CreateSentinel([FromBody] SentinelContract contract)
         {
             throw new NotImplementedException("Function is not yet implemented");
 
@@ -77,7 +77,7 @@ namespace Api.API
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
-                var result = await _service.CreateDriver(contract);
+                var result = await _service.CreateSentinel(contract);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -93,16 +93,16 @@ namespace Api.API
         // PUT: api/drivers
         [HttpPut("{id}")]
         [Authorize("update:drivers")]
-        public async Task<IActionResult> UpdateDriver(string id, DriverContract contract)
+        public async Task<IActionResult> UpdateSentinel(string id, SentinelContract contract)
         {
             throw new NotImplementedException("Function is not yet implemented");
 
             try
             {
-                var result = await _service.UpdateDriver(id, contract);
+                var result = await _service.UpdateSentinel(id, contract);
                 if (!result)
                     return NotFound();
-                return Ok("Driver updated");
+                return Ok("Sentinel updated");
             }
             catch (Exception ex)
             {
@@ -117,7 +117,7 @@ namespace Api.API
         // DELETE: api/drivers
         [HttpDelete("{id}")]
         [Authorize("delete:drivers")]
-        public async Task<IActionResult> DeleteDriver(string id)
+        public async Task<IActionResult> DeleteSentinel(string id)
         {
             throw new NotImplementedException("Function is not yet implemented");
 
@@ -125,11 +125,11 @@ namespace Api.API
             {
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
 
-                var result = await _service.DeleteDriver(id);
-                return result ? (IActionResult) Ok("Driver deleted.") : NotFound();
+                var result = await _service.DeleteSentinel(id);
+                return result ? (IActionResult) Ok("Sentinel deleted.") : NotFound();
             }
             catch (Exception ex)
-            {
+            {∫
                 var error = ex.Message;
                 if (ex.InnerException != null)
                     error = ex.InnerException.Message;

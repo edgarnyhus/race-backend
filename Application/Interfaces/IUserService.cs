@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Domain.Contracts;
 using Domain.Dtos;
+using Domain.Models;
 using Domain.Queries.Helpers;
 
 namespace Application.Interfaces
@@ -17,6 +18,9 @@ namespace Application.Interfaces
         // Roles : 
 
         Task<IEnumerable<RoleDto>> GetAllRoles();
+        Task<IEnumerable<UserDto>> GetUsersOfRole(string id);
+        Task<bool> AssignUsersToRole(string id, UserList userList);
+
         Task<IEnumerable<RoleDto>> GetUserRoles(string userId);
         Task<bool> SetUserRoles(string id, AppMetadataDto roles);
         Task<bool> DeleteUserRoles(string id, AppMetadataDto roles);

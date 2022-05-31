@@ -15,26 +15,29 @@ using Domain.Exceptions;
 using Domain.Models;
 using Domain.Queries.Helpers;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 
 namespace Api.API
 {
 
     [ApiController]
     [EnableCors("SiteCorsPolicy")]
-    [Route("api/[controller]")]
+    //[Route("api/[controller]")]
 
     public class UsersController : ControllerBase
     {
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserService _service;
         private AttachmentCreatedDateResolver _resolver;
 
-        public UsersController(IUserService service, AttachmentCreatedDateResolver resolver)
+        public UsersController(IHttpContextAccessor httpContextAccessor, IUserService service, AttachmentCreatedDateResolver resolver)
         {
+            _httpContextAccessor = httpContextAccessor;
             _service = service;
             _resolver = resolver;
         }
 
-        [HttpGet]
+        [HttpGet("api/users")]
         [Authorize("read:users")]
         public async Task<ActionResult<IEnumerable<User>>> GetAllUsers([FromQuery] QueryParameters queryParameters)
         {
@@ -67,7 +70,7 @@ namespace Api.API
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("api/users/{id}")]
         [Authorize("read:users")]
         public async Task<ActionResult<User>> GetUserById(string id)
         {
@@ -90,7 +93,7 @@ namespace Api.API
             }
         }
 
-        [HttpPost]
+        [HttpPost("api/users")]
         [Authorize("create:users")]
         public async Task<ActionResult<UserContract>> CreateUser(UserContract contract)
         {
@@ -113,7 +116,7 @@ namespace Api.API
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("api/users/{id}")]
         [Authorize("update:users")]
         public async Task<ActionResult<UserContract>> UpdateUser(string id, UserContract contract)
         {
@@ -136,7 +139,7 @@ namespace Api.API
             }
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("api/users/{id}")]
         [Authorize("delete:users")]
         public async Task<ActionResult<bool>> DeleteUser(string id)
         {
@@ -159,9 +162,11 @@ namespace Api.API
             }
         }
 
+        //
+        // User's Roles
+        //
 
-
-        [HttpGet("{id}/roles")]
+        [HttpGet("api/users/{id}/roles")]
         [Authorize("read:users")]
         public async Task<ActionResult<List<Role>>> GetUserRoles(string id)
         {
@@ -185,7 +190,7 @@ namespace Api.API
         }
 
 
-        [HttpPut("{id}/roles")]
+        [HttpPut("api/users/{id}/roles")]
         [Authorize("update:users")]
         public async Task<ActionResult<bool>> SetUserRoles(string id, AppMetadataDto metadata)
         {
@@ -208,7 +213,7 @@ namespace Api.API
             }
         }
 
-        [HttpDelete("{id}/roles")]
+        [HttpDelete("api/users/{id}/roles")]
         [Authorize("delete:users")]
         public async Task<ActionResult<bool>> DeleteUserRoles(string id, AppMetadataDto metadata)
         {
@@ -231,7 +236,11 @@ namespace Api.API
             }
         }
 
-        [HttpGet("roles")]
+        //
+        // Role's Users
+        //
+
+        [HttpGet("api/roles")]
         [Authorize("read:users")]
         public async Task<IActionResult> GetAllRoles()
         {
@@ -240,6 +249,55 @@ namespace Api.API
                 _resolver.SetTimeZone(Request.Headers["TimeZone"]);
                 var result = await _service.GetAllRoles();
                 return Ok(result);
+            }
+            catch (UsersException ex)
+            {
+                var error = JsonConvert.DeserializeObject(ex.Message);
+                return BadRequest(error);
+            }
+            catch (Exception ex)
+            {
+                var error = ex.Message;
+                if (ex.InnerException != null)
+                    error = ex.InnerException.Message;
+                throw new HttpResponseException((int)HttpStatusCode.Forbidden, error);
+            }
+        }
+
+        [HttpGet("api/roles/{id}/users")]
+        [Authorize("read:users")]
+        public async Task<IActionResult> GetUsersOfRole(string id)
+        {
+            try
+            {
+                _resolver.SetTimeZone(Request.Headers["TimeZone"]);
+                var result = await _service.GetUsersOfRole(id);
+                return Ok(result);
+            }
+            catch (UsersException ex)
+            {
+                var error = JsonConvert.DeserializeObject(ex.Message);
+                return BadRequest(error);
+            }
+            catch (Exception ex)
+            {
+                var error = ex.Message;
+                if (ex.InnerException != null)
+                    error = ex.InnerException.Message;
+                throw new HttpResponseException((int)HttpStatusCode.Forbidden, error);
+            }
+        }
+
+        [HttpPost("api/roles/{id}/users")]
+        [Authorize("update:users")]
+        public async Task<IActionResult> AssignUsersToRole(string id, UserList userList)
+        {
+            try
+            {
+                _resolver.SetTimeZone(Request.Headers["TimeZone"]);
+                var request = _httpContextAccessor.HttpContext.Request;
+                var result = await _service.AssignUsersToRole(id, userList);
+                return Ok("Users assigned to role");
             }
             catch (UsersException ex)
             {

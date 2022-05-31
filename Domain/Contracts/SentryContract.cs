@@ -2,7 +2,7 @@
 
 namespace Domain.Contracts
 {
-    public class DriverContract
+    public class SentinelContract
     {
         [JsonProperty("tenant_id")]
         public string? TenantId { get; set; }

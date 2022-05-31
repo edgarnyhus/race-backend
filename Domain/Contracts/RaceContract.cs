@@ -19,7 +19,7 @@ namespace Domain.Contracts
         [JsonProperty("scheduled_at")]
         public DateTime? ScheduledAt { get; set; }
         public string? State { get; set; }
-        //public DriverContract? driver { get; set; }
+        //public SentinelContract? driver { get; set; }
         [JsonProperty("organization_id")]
         public string? OrganizationId { get; set; }
         [JsonProperty("tenant_id")]

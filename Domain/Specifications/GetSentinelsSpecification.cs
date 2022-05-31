@@ -4,14 +4,14 @@ using Domain.Models;
 
 namespace Domain.Specifications
 {
-    public sealed class GetDriversSpecification : BaseSpecification<Driver>
+    public sealed class GetSentinelsSpecification : BaseSpecification<Sentinel>
     {
-        public GetDriversSpecification(string id) : base(x => x.Id.Equals(id))
+        public GetSentinelsSpecification(string id) : base(x => x.Id.Equals(id))
         {
 
         }
 
-        public GetDriversSpecification(IQueryParameters parameters) : base(parameters)
+        public GetSentinelsSpecification(IQueryParameters parameters) : base(parameters)
         {
             if (parameters.multitenancy)
             {

@@ -2,7 +2,7 @@
 
 namespace Domain.Interfaces
 {
-    public interface IDriverRepository : IRepository<Driver>
+    public interface ISentinelRepository : IRepository<Sentinel>
     {
         
     }

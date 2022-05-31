@@ -48,7 +48,7 @@ namespace Infrastructure.Data.Repositories.Helpers
                             if (existingEntity != null)
                                 existingValue = prop.GetValue(existingEntity);
 
-                            if (value is Driver)
+                            if (value is Sentinel)
                                 value = await CheckProperties(context, value, existingValue);
 
                             value = await CheckNavigationProperty(context, entity, value, existingValue);

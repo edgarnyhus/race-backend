@@ -8,7 +8,7 @@ using Domain.Interfaces;
 
 namespace Domain.Models
 {
-    public class Driver : EntityBase
+    public class Sentinel : EntityBase
     {
         [ForeignKey("TenantId")]
         public Guid? TenantId { get; set; }

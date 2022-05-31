@@ -11,11 +11,11 @@ namespace Api
     {
         public MappingProfile()
         {
-            CreateMap<Driver, Driver>()
+            CreateMap<Sentinel, Sentinel>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-            CreateMap<Driver, DriverDto>()
+            CreateMap<Sentinel, SentinelDto>()
                 .ReverseMap();
-            CreateMap<DriverContract, Driver>()
+            CreateMap<SentinelContract, Sentinel>()
                 .ReverseMap();
             CreateMap<Location, Location>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));

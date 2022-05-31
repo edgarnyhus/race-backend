@@ -22,7 +22,7 @@ namespace Infrastructure.Data.Context
             //this.Configuration.LazyLoadingEnabled = false;
         }
 
-        public DbSet<Driver> Drivers { get; set; }
+        public DbSet<Sentinel> Sentinels { get; set; }
         public DbSet<Sign> Signs { get; set; }
         public DbSet<SignGroup> SignGroups { get; set; }
         public DbSet<Location> Locations { get; set; }
@@ -230,13 +230,13 @@ namespace Infrastructure.Data.Context
                 .Property(p => p.OrganizationNumber)
                 .HasMaxLength(64);
 
-            modelBuilder.Entity<Driver>()
+            modelBuilder.Entity<Sentinel>()
                 .Property(p => p.Name)
                 .HasMaxLength(64);
-            modelBuilder.Entity<Driver>()
+            modelBuilder.Entity<Sentinel>()
                 .Property(p => p.PhoneNumber)
                 .HasMaxLength(32);
-            modelBuilder.Entity<Driver>()
+            modelBuilder.Entity<Sentinel>()
                 .Property(p => p.Email)
                 .HasMaxLength(64);
             

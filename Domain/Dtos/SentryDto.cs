@@ -2,7 +2,7 @@
 
 namespace Domain.Dtos
 {
-    public class DriverDto : EntityBaseDto
+    public class SentinelDto : EntityBaseDto
     {
         [JsonProperty("tenant_id")]
         public string? TenantId { get; set; }

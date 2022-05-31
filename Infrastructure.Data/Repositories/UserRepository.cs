@@ -529,6 +529,60 @@ namespace Infrastructure.Data.Repositories
             return result;
         }
 
+        public async Task<IEnumerable<User>> GetUsersOfRole(string id)
+        {
+            var accessToken = await GetAccessToken();
+            var mgtClient = new RestClient($"{_audience}roles/{id}/users");
+            var request = new RestRequest(Method.GET);
+            request.AddHeader("authorization", $"Bearer {accessToken.access_token}");
+
+            var response = await mgtClient.ExecuteAsync(request);
+            if (!response.IsSuccessful)
+                throw new UsersException(response.Content ?? "Unspecified error");
+
+            var users = JsonConvert.DeserializeObject<List<User>>(response.Content);
+            foreach (var user in users)
+            {
+                var usr = await GetUserFromDb(user.UserId);
+                user.Id = usr?.Id;
+                user.TenantId = usr?.TenantId;
+                user.OrganizationId = usr?.OrganizationId;
+                user.Nickname = usr?.Nickname;
+                user.PhoneNumber = usr?.PhoneNumber ?? null;
+            }
+
+            return users;
+        }
+
+        public async Task<bool> AssignUsersToRole(string id, UserList userList)
+        {
+            var accessToken = await GetAccessToken();
+            var mgtClient = new RestClient($"{_audience}roles/{id}/users");
+            var request = new RestRequest(Method.POST);
+            var json = JsonConvert.SerializeObject(userList, Formatting.None, new JsonSerializerSettings
+            {
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                NullValueHandling = NullValueHandling.Ignore,       // Exclude properties set to null from the payload
+                ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = new SnakeCaseNamingStrategy()
+                }
+            });
+            request.AddJsonBody(json);
+            request.AddHeader("authorization", $"Bearer {accessToken.access_token}");
+
+            var response = await mgtClient.ExecuteAsync(request);
+            if (!response.IsSuccessful)
+                throw new UsersException(response.Content ?? "Unspecified error");
+
+            return true;
+        }
+
+
+        //
+        // User's Roles
+        //
+
         public async Task<IEnumerable<Role>> GetUserRoles(string id)
         {
             id = await CheckUserId(id);
