@@ -78,7 +78,7 @@ namespace Domain.Specifications
                 {
                     state =(SignState)int.Parse(parameters.state);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     throw new ArgumentException("Invalid 'state' parameter. Use the 'key' retrieved from api/signs/states.");
                 }

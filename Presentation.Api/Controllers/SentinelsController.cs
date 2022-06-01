@@ -129,7 +129,7 @@ namespace Api.API
                 return result ? (IActionResult) Ok("Sentinel deleted.") : NotFound();
             }
             catch (Exception ex)
-            {∫
+            {
                 var error = ex.Message;
                 if (ex.InnerException != null)
                     error = ex.InnerException.Message;

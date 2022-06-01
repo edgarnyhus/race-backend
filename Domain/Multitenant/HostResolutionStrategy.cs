@@ -19,12 +19,12 @@ namespace Domain.Multitenant
             return await Task.FromResult(_httpContextAccessor?.HttpContext?.Request.Host.Host);
         }
 
-        public async Task<string?> GetUserRolesAsync()
+        public Task<string?> GetUserRolesAsync()
         {
             throw new System.NotImplementedException();
         }
 
-        public async Task<string?> GetUserEmailAddressAsync()
+        public Task<string?> GetUserEmailAddressAsync()
         {
             throw new System.NotImplementedException();
         }

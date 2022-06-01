@@ -19,7 +19,6 @@ namespace Domain.Dtos
         public int RaceDay { get; set; }
         [JsonProperty("signtype_id")]
         public string SignTypeId { get; set; }
-        [JsonProperty("signtype")]
         public SignTypeDto? SignType { get; set; }
         public LocationDto? Location { get; set; }
         public string? Notes { get; set; }

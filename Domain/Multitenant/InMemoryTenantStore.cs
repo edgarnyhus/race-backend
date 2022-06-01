@@ -42,7 +42,7 @@ namespace Domain.Multitenant
 
         public async Task<bool> HasParent(string id)
         {
-            return false;
+            return await Task.Run(() => false );
         }
 
     }

@@ -13,7 +13,7 @@ namespace Domain.Models
     
     public class UserList
     {
-        public IList<string> users { get; set; }
+        public IList<string>? users { get; set; }
     }
 
     public class Identity
