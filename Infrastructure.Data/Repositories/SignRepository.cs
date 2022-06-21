@@ -70,6 +70,8 @@ namespace Infrastructure.Data.Repositories
             await PropertyChecks.CheckProperties(_dbContext, entity, null);
 
             entity = await base.Add(entity);
+            if (entity.SignTypeId != null)
+                entity.SignType = _dbContext.Set<SignType>().SingleOrDefault(x => x.Id == entity.SignTypeId);
             return entity;
         }
 

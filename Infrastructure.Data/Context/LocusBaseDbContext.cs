@@ -167,7 +167,10 @@ namespace Infrastructure.Data.Context
                 .HasMaxLength(64);
             modelBuilder.Entity<SignType>()
                 .Property(p => p.ImageUrl)
-                .HasMaxLength(64);  
+                .HasMaxLength(256);
+            modelBuilder.Entity<SignType>()
+                .Property(p => p.Reuseable)
+                .HasDefaultValue(false);
             modelBuilder.Entity<SignType>()
                 .Property(p => p.Description)
                 .HasMaxLength(512);

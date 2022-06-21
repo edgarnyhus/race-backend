@@ -29,6 +29,7 @@ namespace Application.Services
         private readonly IMediator _mediator;
         private readonly ILogger<UserService> _logger;
         private readonly bool _multitenancy = false;
+        private readonly IConfiguration _config;
 
 
         public UserService(TenantAccessService<Tenant> tenantAccessService, IRepository<User> repository, IMapper mapper,
@@ -39,6 +40,7 @@ namespace Application.Services
             _mapper = mapper;
             _mediator = mediator;
             _logger = logger;
+            _config = config;
             var value = config["Multitenancy:Enabled"];
             bool.TryParse(value, out _multitenancy);
         }
@@ -145,6 +147,8 @@ namespace Application.Services
        
         public async Task<bool> SetUserRoles(string id, AppMetadataDto metadata)
         {
+            await CheckRoles(metadata);
+
             var data = _mapper.Map<AppMetadataDto, AppMetadata> (metadata);
             var result = await _repository.SetUserRoles(id, data);
             return result;
@@ -153,9 +157,29 @@ namespace Application.Services
 
         public async Task<bool> DeleteUserRoles(string id, AppMetadataDto metadata)
         {
+            await CheckRoles(metadata);
+
             var data = _mapper.Map<AppMetadataDto, AppMetadata>(metadata);
             var result = await _repository.DeleteUserRoles(id, data);
             return result;
+        }
+
+
+        private async Task CheckRoles(AppMetadataDto metadata) {
+            if (!await _tenantAccessService.IsGlobalAdministrator())
+            {
+                // if role = admin, throw exception
+                var roleAdmin = _config["Auth0_mgt:RoleAdminName"];
+                var roles = await _repository.GetAllRoles();
+                foreach (var role in roles)
+                {
+                    if (role.Name.Equals(roleAdmin, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        if (metadata.Roles.FirstOrDefault(x => x.Equals(role.Id, StringComparison.InvariantCultureIgnoreCase)) != null)
+                            throw new UnauthorizedAccessException("Unauthorized. You are missing the necessary permissions to issue this request.");
+                    }
+                }
+            }
         }
     }
 }

@@ -16,7 +16,7 @@ namespace Domain.Models
         public string? LogoUrl { get; set; }
         public string? Identifier { get; set; }
         public virtual ICollection<Organization>? Children { get; set; }
-        public virtual ICollection<Sentinel>? Drivers { get; set; }
+        public virtual ICollection<Sentinel>? Sentinels { get; set; }
         public virtual ICollection<Sign>? Signs { get; set; }
         public virtual ICollection<Race>? Races { get; set; }
         public virtual ICollection<User>? Users { get; set; }

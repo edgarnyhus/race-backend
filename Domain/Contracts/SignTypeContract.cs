@@ -11,6 +11,7 @@ namespace Domain.Contracts
 		public string? Description { get; set; }
 		[JsonProperty("image_url")]
 		public string? ImageUrl { get; set; }
+		public bool Reuseable { get; set; }
 	}
 }
 

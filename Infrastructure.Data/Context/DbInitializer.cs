@@ -45,10 +45,56 @@ namespace Infrastructure.Data.Context
 
         public async void SeedData()
         {
+            string[] qrcodes_302_signs = {
+                "",
+                "UPZYUM70U6VT",
+                "D0K0PFLTR0OP",
+                "QJYX5PEXDCMR",
+                "XLXD9PJKRMXP",
+                "1JBCPXBXDIF1",
+                "Q5N9LBNRY6TH",
+                "QN3D964TIRVH",
+                "EWLFPMNWHHWE",
+                "XSY15FJUGNWW",
+                "KES7NIMH5XBR",
+                "YJQMAR6IFCSV",
+                "VBTHKV70RYJ5",
+                "PVU7WPHVF0X4",
+                "UQSGXM0TCM9R",
+                "IPQ9YYSGCZ57",
+                "PTFYMMDTH3BU",
+                "L4XKY0GBPWBQ",
+                "QOEQ6DGFMQTO",
+                "JUTKY6GPAXZV",
+                "URJQELMD0LUH",
+                "G0WCTLFJYA1K",
+                "N5FPWDMOF5PG",
+                "J1ACQYA75MYI",
+                "Q02CKIBCQICS",
+                "0RZHQGGS5FTH",
+                "R9WY3RUDXRKK",
+                "L1BNDRLAABX8",
+                "6PJKLMSFXFJM",
+                "DYGYKFN63QUL",
+                "UHNNQCEBCHBD",
+                "Y6CD41P8CGK6",
+                "AN9B5IQXJYCU",
+                "W9KDADYUGZIP",
+                "K4KRYQPUJ6HJ",
+                "HHCYXKCQA3NJ",
+                "SJI7PKNP9LT6",
+                "QUFCAWZ2CNVV",
+                "VS3PD2XYDCW8",
+                "FJMLDNMUV5PK",
+                "XPRHXXGZB0MY"
+            };
             using (var serviceScope = _scopeFactory.CreateScope())
             {
                 using (var context = serviceScope.ServiceProvider.GetService<LocusBaseDbContext>())
                 {
+                    var organizationId = "9e6af333-68df-4328-afd2-83f234b0aeed";
+                    var tenantId = "50837eca-3ef5-456f-8799-580c4a4a10fc";
+
                     //var vink = await context.Tenants.FirstOrDefaultAsync(x => x.Name.StartsWith("Vink"));
                     //if (vink == null)
                     //{
@@ -68,7 +114,7 @@ namespace Infrastructure.Data.Context
                     {
                         locusbase = new Tenant()
                         {
-                            Id = new Guid("50837eca-3ef5-456f-8799-580c4a4a10fc"),
+                            Id = new Guid(tenantId),
                             Name = "LocusBase",
                             Identifier = "locusbase.no",
                             Description = "LocusBase Tenant",
@@ -99,11 +145,11 @@ namespace Infrastructure.Data.Context
                     {
                         organization = new Organization()
                         {
-                            Id = new Guid("9e6af333-68df-4328-afd2-83f234b0aeed"),
+                            Id = new Guid(organizationId),
                             Name = "LocusBase AS",
                             Identifier = "locusbase.no,vink-kort.no,getacademy.no",
                             Level = 0,
-                            TenantId = new Guid("50837eca-3ef5-456f-8799-580c4a4a10fc")
+                            TenantId = new Guid(tenantId)
                         };
 
                         context.Organizations.Add(organization);
@@ -130,13 +176,13 @@ namespace Infrastructure.Data.Context
                         };
                         context.SignTypes.Add(signType);
 
-                        //signType = new SignType
-                        //{
-                        //    Id = new Guid("920794a0-f089-4d5e-a5b0-6da9aa98b493"),
-                        //    Name = "560",
-                        //    Description = "Sign 560 - Information board",
-                        //};
-                        //context.SignTypes.Add(signType);
+                        signType = new SignType
+                        {
+                            Id = new Guid("920794a0-f089-4d5e-a5b0-6da9aa98b493"),
+                            Name = "560",
+                            Description = "Sign 560 - Information board",
+                        };
+                        context.SignTypes.Add(signType);
 
                         //signType = new SignType
                         //{
@@ -181,11 +227,39 @@ namespace Infrastructure.Data.Context
                         await context.SaveChangesAsync();
                     }
 
-                    // Duplicate signs - one sign per race day
+                    // Make sure the 302-signs exist
+                    for (int i = 1; i < qrcodes_302_signs.Count(); i++)
+                    {
+                        try
+                        {
+                            var name = string.Format($"{i}-001");
+                            var entity = context.Set<Sign>().SingleOrDefault(x => x.Name == name && x.RaceDay == 1);
+                            if (entity == null)
+                            {
+                                var sign = new Sign()
+                                {
+                                    Name = name,
+                                    SequenceNumber = 1,
+                                    QrCode = qrcodes_302_signs[i],
+                                    RaceDay = 1,
+                                    SignTypeId = new Guid("85dff9b7-2851-488e-8dc1-469c090bb25c"),
+                                    State = SignState.Inactive,
+                                    OrganizationId = new Guid(organizationId),
+                                    TenantId = new Guid(tenantId)
+                                };
+                                await context.Signs.AddAsync(sign);
+                                await context.SaveChangesAsync();
+                            }
+                        }
+                        catch (Exception) { /* ignore */ }
+                    }
 
+                    // Duplicate signs - one sign per race day
                     int numberOfRaceDays = 4;
                     try { numberOfRaceDays = int.Parse(_config["NumberOfRaceDays"]); } catch { }
-                    var signs = await context.Signs.ToListAsync();
+                    var signs = await context.Signs
+                        .Include(i => i.SignType)
+                        .ToListAsync();
                     if (signs.Count == 0)
                         return;
                     var s = signs.FirstOrDefault();
@@ -203,25 +277,28 @@ namespace Infrastructure.Data.Context
                                     await context.SaveChangesAsync();
                                 }
 
-                                for (int raceDay = 2; raceDay <= numberOfRaceDays; raceDay++)
+                                if (sign.SignType!.Reuseable)
                                 {
-                                    var item = await context.Signs.FirstOrDefaultAsync(x =>
-                                        x.QrCode == sign.QrCode && x.RaceDay == raceDay && x.State != SignState.Discarded);
-                                    if (item == null)
+                                    for (int raceDay = 2; raceDay <= numberOfRaceDays; raceDay++)
                                     {
-                                        item = new Sign();
-                                        item = sign;
-                                        item.Id = null;
-                                        item.RaceDay = raceDay;
-                                        item.RaceId = null;
-                                        item.Location = null;
-                                        item.GeoLocation = null;
-                                        item.LastScanned = null;
-                                        item.LastScannedBy = null;
-                                        item.State = SignState.Inactive;
+                                        var item = signs.SingleOrDefault(x =>
+                                            x.QrCode == sign.QrCode && x.RaceDay == raceDay && x.State != SignState.Discarded);
+                                        if (item == null)
+                                        {
+                                            item = new Sign();
+                                            item = sign;
+                                            item.Id = null;
+                                            item.RaceDay = raceDay;
+                                            item.RaceId = null;
+                                            item.Location = null;
+                                            item.GeoLocation = null;
+                                            item.LastScanned = null;
+                                            item.LastScannedBy = null;
+                                            item.State = SignState.Inactive;
 
-                                        await context.Signs.AddAsync(item);
-                                        await context.SaveChangesAsync();
+                                            await context.Signs.AddAsync(item);
+                                            await context.SaveChangesAsync();
+                                        }
                                     }
                                 }
 

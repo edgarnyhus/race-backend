@@ -20,42 +20,6 @@ namespace Infrastructure.Data.Migrations
                 .HasAnnotation("ProductVersion", "6.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("Domain.Models.Driver", b =>
-                {
-                    b.Property<Guid?>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(64)
-                        .HasColumnType("varchar(64)");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(64)
-                        .HasColumnType("varchar(64)");
-
-                    b.Property<Guid?>("OrganizationId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasMaxLength(32)
-                        .HasColumnType("varchar(32)");
-
-                    b.Property<Guid?>("RaceId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid?>("TenantId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrganizationId");
-
-                    b.HasIndex("RaceId");
-
-                    b.ToTable("Drivers");
-                });
-
             modelBuilder.Entity("Domain.Models.Location", b =>
                 {
                     b.Property<Guid?>("Id")
@@ -188,6 +152,42 @@ namespace Infrastructure.Data.Migrations
                     b.ToTable("Races");
                 });
 
+            modelBuilder.Entity("Domain.Models.Sentinel", b =>
+                {
+                    b.Property<Guid?>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<Guid?>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<Guid?>("RaceId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("RaceId");
+
+                    b.ToTable("Sentinels");
+                });
+
             modelBuilder.Entity("Domain.Models.Sign", b =>
                 {
                     b.Property<Guid?>("Id")
@@ -298,12 +298,17 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("varchar(512)");
 
                     b.Property<string>("ImageUrl")
-                        .HasMaxLength(64)
-                        .HasColumnType("varchar(64)");
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
 
                     b.Property<string>("Name")
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
+
+                    b.Property<bool>("Reuseable")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
 
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("char(36)");
@@ -445,21 +450,6 @@ namespace Infrastructure.Data.Migrations
                     b.ToTable("Waypoints");
                 });
 
-            modelBuilder.Entity("Domain.Models.Driver", b =>
-                {
-                    b.HasOne("Domain.Models.Organization", "Organization")
-                        .WithMany("Drivers")
-                        .HasForeignKey("OrganizationId");
-
-                    b.HasOne("Domain.Models.Race", "Race")
-                        .WithMany()
-                        .HasForeignKey("RaceId");
-
-                    b.Navigation("Organization");
-
-                    b.Navigation("Race");
-                });
-
             modelBuilder.Entity("Domain.Models.Location", b =>
                 {
                     b.HasOne("Domain.Models.Sign", "Sign")
@@ -498,6 +488,21 @@ namespace Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("Domain.Models.Sentinel", b =>
+                {
+                    b.HasOne("Domain.Models.Organization", "Organization")
+                        .WithMany("Sentinels")
+                        .HasForeignKey("OrganizationId");
+
+                    b.HasOne("Domain.Models.Race", "Race")
+                        .WithMany()
+                        .HasForeignKey("RaceId");
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("Race");
                 });
 
             modelBuilder.Entity("Domain.Models.Sign", b =>
@@ -575,9 +580,9 @@ namespace Infrastructure.Data.Migrations
                 {
                     b.Navigation("Children");
 
-                    b.Navigation("Drivers");
-
                     b.Navigation("Races");
+
+                    b.Navigation("Sentinels");
 
                     b.Navigation("Signs");
 

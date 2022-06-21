@@ -22,7 +22,7 @@ namespace Domain.Dtos
         public string? State { get; set; }
         //public List<WaypointDto>? Waypoints { get; set; }
         //public List<SignDto>? Signs { get; set; }
-        public SentinelDto? Driver { get; set; }
+        public SentinelDto? Sentinel { get; set; }
         [JsonProperty("organization_id")]
         public string? OrganizationId { get; set; }
         [JsonProperty("tenant_id")]

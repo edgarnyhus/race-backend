@@ -17,7 +17,7 @@ namespace Domain.Contracts
         [JsonProperty("race_day")]
         public int RaceDay { get; set; }
         [JsonProperty("signtype_id")]
-        public string? SignTypeId { get; set; }
+        public string SignTypeId { get; set; }
         public LocationContract? Location { get; set; }
         public string? Notes { get; set; }
         public DateTime? LastScanned { get; set; }
