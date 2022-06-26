@@ -60,6 +60,12 @@ namespace Application.Services
             return response;
         }
 
+        enum CreateOrUpdate
+        {
+            create = 1,
+            update
+        };
+
         public async Task<SignDto> CreateSign(SignContract contract)
         {
             if (string.IsNullOrEmpty(contract.Name))
@@ -69,33 +75,7 @@ namespace Application.Services
             if (string.IsNullOrEmpty(contract.SignTypeId))
                 throw new ArgumentNullException("signtype_id");
 
-            contract.SequenceNumber = 1;
-            Tuple<string, Sign> tuple = await UpdateProperties(contract);
-            var prefix = tuple.Item1;
-            var entity = tuple.Item2; 
-
-            // If 'name' exists, discard the sign and increase the sequence number
-            var spec = new GetSignsSpecification(new QueryParameters()
-            {
-                name = prefix,
-                organization_id = entity.OrganizationId.ToString()
-            });
-            IEnumerable<Sign> signs = await _repository.Find(spec);
-
-            int raceDay = 1;
-            foreach (var sign in signs)
-            {
-                sign.State = SignState.Discarded;
-                if (sign.RaceDay == 1 || sign.RaceId != null)
-                    await _repository.Update(sign.Id.ToString(), sign);
-                else
-                    await _repository.Remove(sign.Id.ToString());
-
-                entity.SequenceNumber = ++sign.SequenceNumber;
-                entity.RaceDay = raceDay++;
-                Tuple<string, string> t = ComposeName(entity.Name, (int)entity.SequenceNumber);
-                entity.Name = t.Item2;
-            }
+            var entity = await CheckIfDiscard(contract, CreateOrUpdate.create);
 
             // Create an unique QR Code
             if (string.IsNullOrEmpty(entity.QrCode))
@@ -108,16 +88,23 @@ namespace Application.Services
             entity.State = SignState.Inactive;
 
             // Create the sign plus 'numberOfRaceDays' shadow signs
+            var signtypeId = entity.SignTypeId;
             SignDto result = null;
             int numberOfRaceDays = 4;
             try { numberOfRaceDays = int.Parse(_config["NumberOfRaceDays"]); } catch { }
-            for (raceDay = 1; raceDay <= numberOfRaceDays; raceDay++)
+            for (var raceDay = 1; raceDay <= numberOfRaceDays; raceDay++)
             {
-                //var sign = new Sign();
-                //var sign = entity;
                 entity.Id = null;
                 entity.RaceDay = raceDay;
+                entity.SignType = null;
+                entity.SignTypeId = signtypeId;
                 entity = await _repository.Add(entity);
+                if (entity.SignTypeId == null)
+                {
+                    // For some reason the SignTypeId property is occationally not set...
+                    entity.SignTypeId = signtypeId;
+                    await _repository.Update(entity.Id.ToString(), entity);
+                }
                 if (raceDay == 1)
                     result = _mapper.Map<Sign, SignDto>(entity);
                 if (entity.SignType != null && !entity.SignType.Reuseable)
@@ -129,9 +116,12 @@ namespace Application.Services
 
         public async Task<bool> UpdateSign(string id, SignContract contract)
         {
-            Tuple<string, Sign> tuple = await UpdateProperties(contract);
+            contract.Id = id;
+            var entity = await CheckIfDiscard(contract, CreateOrUpdate.update);
+            if (entity.State == SignState.Discarded)
+                return true;
 
-            var result = await _repository.Update(id, tuple.Item2);
+            var result = await _repository.Update(id, entity);
 
             return result;
         }
@@ -187,7 +177,8 @@ namespace Application.Services
 
         private Tuple<string, string> ComposeName(string str, int sequenceNumber)
         {
-            string name = str;
+            if (string.IsNullOrEmpty(str))
+                return new Tuple<string, string>(null, null);
 
             var re = new Regex(@"(.*?)([\$\+\-].*)", RegexOptions.IgnoreCase);
             var m = re.Match(str);
@@ -196,8 +187,10 @@ namespace Application.Services
             {
                 prefix = m.Groups[1].Value;
             }
+            if (!prefix.EndsWith("-"))
+                prefix += "-";
             //var s = string.Format("{0}-{1:000}", name, sequenceNumber);
-            name = prefix + "-" + sequenceNumber.ToString("D3");
+            var name = prefix + sequenceNumber.ToString("D3");
             return new Tuple<string, string>(prefix, name);
         }
 
@@ -217,13 +210,62 @@ namespace Application.Services
             if (entity.Location != null && entity.Location.Timestamp == null)
                 entity.Location.Timestamp = DateTime.UtcNow;
 
+            string prefix = "";
             if (!string.IsNullOrEmpty(entity.Name))
             {
                 Tuple<string, string> res = ComposeName(entity.Name, (int)entity.SequenceNumber);
                 entity.Name = res.Item2;
+                prefix = res.Item1;
             }
 
-            return new Tuple<string, Sign>(entity.Name, entity);
+            return new Tuple<string, Sign>(prefix, entity);
+        }
+
+        private async Task<Sign> CheckIfDiscard(SignContract contract, CreateOrUpdate mode)
+        {
+            if (mode == CreateOrUpdate.update && contract.State == SignState.Discarded)
+            {
+                var sign = await _repository.FindById(contract.Id);
+                if (sign == null)
+                    throw new ArgumentException($"Sign with ID {contract.Id} not found");
+                contract.Name = sign.Name;
+                contract.SequenceNumber = sign.SequenceNumber;
+                contract.QrCode = sign.QrCode;
+            }
+
+            Tuple<string, Sign> tuple = await UpdateProperties(contract);
+            var prefix = tuple.Item1;
+            var entity = tuple.Item2;
+
+            if ((mode == CreateOrUpdate.update && entity.State == SignState.Discarded) ||
+                (mode == CreateOrUpdate.create))
+            {
+                var spec = new GetSignsSpecification(new QueryParameters()
+                {
+                    name = prefix,
+                    organization_id = entity.OrganizationId.ToString()
+                });
+                IEnumerable<Sign> signs = await _repository.Find(spec);
+
+                int raceDay = 1;
+                foreach (var item in signs)
+                {
+                    if (item.RaceDay == 1)
+                    {
+                        entity.SequenceNumber = ++item.SequenceNumber;
+                        item.SequenceNumber = entity.SequenceNumber;
+                        item.State = SignState.Discarded;
+                        await _repository.Update(item.Id.ToString(), item);
+                        Tuple<string, string> t = ComposeName(entity.Name, (int)entity.SequenceNumber);
+                        entity.Name = t.Item2;
+                        raceDay++;
+                    }
+                    else
+                        await _repository.Remove(item.Id.ToString());
+                }
+            }
+
+            return entity;
         }
     }
 }
