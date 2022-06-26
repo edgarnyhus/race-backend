@@ -120,7 +120,7 @@ namespace Application.Services
                 entity = await _repository.Add(entity);
                 if (raceDay == 1)
                     result = _mapper.Map<Sign, SignDto>(entity);
-                if (!entity.SignType!.Reuseable)
+                if (entity.SignType != null && !entity.SignType.Reuseable)
                     break;
             }
 

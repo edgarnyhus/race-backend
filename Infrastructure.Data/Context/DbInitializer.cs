@@ -277,7 +277,7 @@ namespace Infrastructure.Data.Context
                                     await context.SaveChangesAsync();
                                 }
 
-                                if (sign.SignType!.Reuseable)
+                                if (sign.SignType != null && sign.SignType.Reuseable)
                                 {
                                     for (int raceDay = 2; raceDay <= numberOfRaceDays; raceDay++)
                                     {
