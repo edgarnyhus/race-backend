@@ -20,7 +20,9 @@ namespace Domain.Contracts
         public string SignTypeId { get; set; }
         public LocationContract? Location { get; set; }
         public string? Notes { get; set; }
+        [JsonProperty("last_scanned")]
         public DateTime? LastScanned { get; set; }
+        [JsonProperty("last_scanned_by")]
         public string? LastScannedBy { get; set; }
         [JsonProperty("race_id")]
         public string? RaceId { get; set; }

@@ -22,7 +22,9 @@ namespace Domain.Dtos
         public SignTypeDto? SignType { get; set; }
         public LocationDto? Location { get; set; }
         public string? Notes { get; set; }
+        [JsonProperty("last_scanned")]
         public DateTime? LastScanned { get; set; }
+        [JsonProperty("last_scanned_by")]
         public string? LastScannedBy { get; set; }
         [JsonProperty("race_id")]
         public string? RaceId { get; set; }

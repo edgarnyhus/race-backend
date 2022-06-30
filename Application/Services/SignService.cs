@@ -223,7 +223,7 @@ namespace Application.Services
 
         private async Task<Sign> CheckIfDiscard(SignContract contract, CreateOrUpdate mode)
         {
-            if (mode == CreateOrUpdate.update && contract.State == SignState.Discarded)
+            if (mode == CreateOrUpdate.update)
             {
                 var sign = await _repository.FindById(contract.Id);
                 if (sign == null)
