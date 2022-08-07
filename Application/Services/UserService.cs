@@ -97,13 +97,17 @@ namespace Application.Services
             var entity = _mapper.Map<UserContract, User>(contract);
             if (entity.AppMetadata == null)
                 entity.AppMetadata = new AppMetadata();
+            if (entity.TenantId != null)
+                entity.AppMetadata.TenantId = entity.TenantId.ToString();
+            if (entity.OrganizationId != null)
+                entity.AppMetadata.OrganizationId = entity.OrganizationId.ToString();
             if (string.IsNullOrEmpty(entity.AppMetadata.TenantId))
             {
                 var tenant = await _tenantAccessService.GetTenantAsync();
-                entity.AppMetadata.TenantId = tenant?.TenantId.ToString();
+                entity.AppMetadata.TenantId = tenant?.TenantId?.ToString();
+                if (string.IsNullOrEmpty(entity.AppMetadata.OrganizationId))
+                    entity.AppMetadata.OrganizationId = tenant?.OrganizationId?.ToString();
             }
-            if (entity.OrganizationId != null)
-                entity.AppMetadata.OrganizationId = entity.OrganizationId.ToString();
             entity.AppMetadata.TenantId?.ToUpper();
             entity.AppMetadata.OrganizationId?.ToUpper();
             return entity;
