@@ -9,21 +9,22 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastru
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domain", "Domain", "{8EF1EDC2-1ED4-4149-B8DB-F3387EF4D6A1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "Application\Application.csproj", "{D6C7F4BD-8D79-4477-810B-0C8F2C954082}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Application\Application.csproj", "{D6C7F4BD-8D79-4477-810B-0C8F2C954082}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data", "Infrastructure.Data\Data.csproj", "{D90D9076-FB47-40A8-AE77-281956EE9071}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data", "Infrastructure.Data\Data.csproj", "{D90D9076-FB47-40A8-AE77-281956EE9071}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Domain\Domain.csproj", "{4A008B53-7DF5-4198-AB0D-EC19A75C5D21}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csproj", "{4A008B53-7DF5-4198-AB0D-EC19A75C5D21}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IoC", "Infrastructure.IoC\IoC.csproj", "{3EDE385C-C23A-4E47-AD10-3E52015D2409}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IoC", "Infrastructure.IoC\IoC.csproj", "{3EDE385C-C23A-4E47-AD10-3E52015D2409}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{080EBF8E-8B9F-48C7-9AC5-F9528A760D58}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Api", "Presentation.Api\Api.csproj", "{E8AFF118-B1BE-413B-B8D0-A9A5CD5A1938}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Api", "Presentation.Api\Api.csproj", "{E8AFF118-B1BE-413B-B8D0-A9A5CD5A1938}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8D1172E3-BB64-4BA5-8368-D7BE5659B38A}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		global.json = global.json
 	EndProjectSection
 EndProject
 Global
