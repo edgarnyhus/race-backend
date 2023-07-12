@@ -24,6 +24,7 @@ using Application.Helpers;
 using Domain.Interfaces;
 using Domain.Multitenant;
 using Microsoft.AspNetCore.HttpOverrides;
+using System.Net;
 
 namespace Api
 {
@@ -60,18 +61,31 @@ namespace Api
                     policy =>
                     {
                         policy
-                             .WithOrigins(
-                               origins
-                               //"http://localhost:4000",
-                               //"https://localhost:4001"
-                             ) /* list of environments that will access this api */
+                            .WithOrigins(
+                            origins
+                            //"http://127.0.0.1","https://127.0.0.1",
+                            //"http://127.0.0.1:4000","https://127.0.0.1:4001",
+                            //"http://localhost","https://localhost",
+                            //"http://localhost:4000","https://localhost:4001",
+                            //"http://app.locusbase.no","https://app.locusbase.no",
+                            //"http://app.locusbase.no:4000","https://app.locusbase.no:4001",
+                            //"http://locusbase.net:4000","https://locusbase.net:4001"
+                            ) /* list of environments that will access this api */
                             //.AllowAnyOrigin()
                             .AllowAnyHeader()
-                            .AllowAnyMethod()
-                            .AllowCredentials();
+                            .AllowAnyMethod();
+                            //.AllowCredentials();
                     });
             });
             // CORS config end
+
+            // Configure forwarded headers
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                //options.KnownProxies.Add(IPAddress.Parse("127.0.10.1"));
+                options.ForwardedHeaders =
+                    ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            });
 
             // Authentication config start
             string domain = $"https://{Configuration["Auth0:Domain"]}/";
@@ -250,11 +264,13 @@ namespace Api
             app.UseRouting();
 
             app.UseCors("SiteCorsPolicy");
+            //app.UseCors(options => options.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
-            {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-            });
+            //app.UseForwardedHeaders(new ForwardedHeadersOptions
+            //{
+            //    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            //});
+            app.UseForwardedHeaders();
 
             app.UseAuthentication();
             app.UseAuthorization();

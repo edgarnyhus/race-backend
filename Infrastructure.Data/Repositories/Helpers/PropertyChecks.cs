@@ -26,6 +26,9 @@ namespace Infrastructure.Data.Repositories.Helpers
                     if (location != null) {
                         if (location.Id == null && existingLocation != null)
                             location.Id = existingLocation.Id;
+                        else
+                            location.Id = Guid.NewGuid();
+
                         prop.SetValue(entity, location);
                     }
                 }

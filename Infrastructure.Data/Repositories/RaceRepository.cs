@@ -108,6 +108,8 @@ namespace Infrastructure.Data.Repositories
         {
             var sign = await _dbContext.Signs
                 .Where(x => x.Id == entity.Id)
+                .Include(i => i.SignType)
+                .Include(i => i.Location)
                 .FirstOrDefaultAsync();
 
             if (sign == null)
@@ -116,6 +118,12 @@ namespace Infrastructure.Data.Repositories
                 throw new ArgumentException("Invalid request. A race withh the specified race_id does not exist.");
             if (sign.RaceDay != entity.RaceDay)
                 throw new ArgumentException("Invalid property (race_day). Mismatch between race.race_day and sign.race_day.");
+
+            //if (entity.Location != null && sign.Location != null)
+            //{
+            //    sign.Location = null;
+            //    await _dbContext.SaveChangesAsync();
+            //}
 
             await PropertyChecks.CheckProperties(_dbContext, entity, sign);
             sign.RaceId = entity.RaceId;
